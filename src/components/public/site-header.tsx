@@ -3,6 +3,10 @@ import { buttonClass } from "@/components/ui/button";
 import { MobileMenu } from "./mobile-menu";
 import { ThemeToggle } from "./theme-toggle";
 
+/**
+ * 메뉴 링크는 next/link 대신 기본 앵커를 쓴다.
+ * 같은 페이지 안의 이동(/#projects 등)에서 Link 는 라우터를 거치느라 스크롤 시작이 0.2초쯤 늦어진다.
+ */
 export type NavItem = { href: string; label: string };
 
 export function SiteHeader({ name, items }: { name: string; items: NavItem[] }) {
@@ -21,21 +25,22 @@ export function SiteHeader({ name, items }: { name: string; items: NavItem[] }) 
             <ul className="flex items-center">
               {items.map((item) => (
                 <li key={item.href}>
-                  <Link
+                  <a
                     href={item.href}
                     className="inline-flex min-h-11 items-center rounded-lg px-3 text-[0.9375rem] font-medium text-muted transition-colors hover:text-foreground"
                   >
                     {item.label}
-                  </Link>
+                  </a>
                 </li>
               ))}
             </ul>
           </nav>
           <ThemeToggle />
           <div className="ml-2 hidden md:block">
-            <Link href="/#contact" className={buttonClass("primary", "min-h-10")}>
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a href="/#contact" className={buttonClass("primary", "min-h-10")}>
               문의하기
-            </Link>
+            </a>
           </div>
           <MobileMenu items={items} />
         </div>

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRef } from "react";
 import { CloseIcon, MailIcon, MenuIcon } from "@/components/icons";
 import { buttonClass } from "@/components/ui/button";
@@ -48,25 +47,26 @@ export function MobileMenu({ items }: { items: NavItem[] }) {
             <ul className="divide-y divide-line border-y border-line">
               {items.map((item) => (
                 <li key={item.href}>
-                  <Link
+                  <a
                     href={item.href}
                     onClick={close}
                     className="flex min-h-13 items-center text-[1.0625rem] font-medium"
                   >
                     {item.label}
-                  </Link>
+                  </a>
                 </li>
               ))}
             </ul>
           </nav>
-          <Link
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <a
             href="/#contact"
             onClick={close}
             className={buttonClass("primary", "mt-4 min-h-12 w-full")}
           >
             <MailIcon />
             문의하기
-          </Link>
+          </a>
         </div>
       </dialog>
     </div>
