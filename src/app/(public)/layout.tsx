@@ -35,7 +35,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
       >
         본문으로 건너뛰기
       </a>
-      <SiteHeader name={profile.name} items={items} />
+      <SiteHeader items={items} />
       <main id="main" className="flex-1">
         {children}
       </main>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { buttonClass } from "@/components/ui/button";
+import { SITE_MARK } from "@/lib/site";
 import { MobileMenu } from "./mobile-menu";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -9,15 +10,16 @@ import { ThemeToggle } from "./theme-toggle";
  */
 export type NavItem = { href: string; label: string };
 
-export function SiteHeader({ name, items }: { name: string; items: NavItem[] }) {
+export function SiteHeader({ items }: { items: NavItem[] }) {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-5 md:h-16 md:px-8">
         <Link
           href="/"
-          className="-mx-2 inline-flex min-h-11 items-center px-2 text-[1.0625rem] font-bold tracking-tight"
+          aria-label={`${SITE_MARK} 홈`}
+          className="-mx-2 inline-flex min-h-11 items-center px-2 font-mono text-base font-semibold tracking-tight"
         >
-          {name}
+          {SITE_MARK}
         </Link>
 
         <div className="flex items-center gap-1">

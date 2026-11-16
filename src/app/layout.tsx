@@ -15,8 +15,10 @@ export const viewport: Viewport = {
   ],
 };
 
-// 저장해 둔 화면 모드를 첫 페인트 전에 적용해서 깜빡임을 막는다. 저장값이 없으면 시스템 설정(CSS)을 따른다.
-const themeScript = `try{var t=localStorage.getItem("theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}`;
+// 화면 모드는 기기의 주간/야간 설정을 따른다(CSS 의 prefers-color-scheme).
+// 방문자가 전환 버튼으로 기기 설정과 반대 화면을 골라 둔 경우에만, 첫 페인트 전에 그 선택을 적용해 깜빡임을 막는다.
+// 저장된 값이 기기 설정과 같으면 더 이상 필요 없으므로 지우고 기기 설정을 따른다.
+const themeScript = `try{var t=localStorage.getItem("theme"),s=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";if((t==="dark"||t==="light")&&t!==s)document.documentElement.dataset.theme=t;else if(t)localStorage.removeItem("theme")}catch(e){}`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
