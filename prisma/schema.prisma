@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+/// 사이트 소유자 정보. 항상 id = 1 인 한 행만 존재한다.
+model Profile {
+  id              Int       @id @default(1)
+  name            String
+  jobTitle        String
+  tagline         String
+  bio             String    @default("")
+  /// 첫 화면에 보여줄 핵심 스택. 쉼표로 구분한 문자열
+  coreStack       String    @default("")
+  githubUrl       String    @default("")
+  velogUrl        String    @default("")
+  notionUrl       String    @default("")
+  /// 업로드된 PDF의 서버 파일명. 없으면 null
+  resumeFile      String?
+  resumeUpdatedAt DateTime?
+  updatedAt       DateTime  @updatedAt
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  title       String
+  slug        String   @unique
+  summary     String
+  role        String   @default("")
+  teamSize    Int      @default(1)
+  /// YYYY-MM
+  startDate   String
+  /// YYYY-MM. 진행 중이면 null
+  endDate     String?
+  /// 카드에 보여줄 핵심 성과(수치). 한 줄에 하나씩
+  highlights  String   @default("")
+  /// Markdown 본문 (문제 → 해결 → 결과)
+  body        String   @default("")
+  coverImage  String?
+  demoUrl     String   @default("")
+  githubUrl   String   @default("")
+  docsUrl     String   @default("")
+  isPublished Boolean  @default(false)
+  isFeatured  Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tags   ProjectTag[]
+  images ProjectImage[]
+
+  @@index([isPublished, isFeatured, sortOrder])
+}
+
+model ProjectTag {
+  id        Int     @id @default(autoincrement())
+  projectId Int
+  name      String
+  sortOrder Int     @default(0)
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model ProjectImage {
+  id        Int     @id @default(autoincrement())
+  projectId Int
+  file      String
+  alt       String  @default("")
+  sortOrder Int     @default(0)
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model SkillCategory {
+  id        Int     @id @default(autoincrement())
+  name      String
+  sortOrder Int     @default(0)
+  skills    Skill[]
+}
+
+model Skill {
+  id         Int           @id @default(autoincrement())
+  categoryId Int
+  name       String
+  /// USED(실무·프로젝트 사용) | LEARNED(학습 경험)
+  level      String        @default("USED")
+  sortOrder  Int           @default(0)
+  category   SkillCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId])
+}
+
+model Certificate {
+  id         Int    @id @default(autoincrement())
+  name       String
+  issuer     String
+  /// YYYY-MM-DD
+  acquiredAt String
+  sortOrder  Int    @default(0)
+}
+
+/// 상태 페이지에서 감시할 URL
+model Monitor {
+  id        Int     @id @default(autoincrement())
+  name      String
+  url       String
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+}
+
+model ContactMessage {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String
+  organization String   @default("")
+  subject      String
+  body         String
+  isRead       Boolean  @default(false)
+  /// PENDING | SENT | FAILED
+  mailStatus   String   @default("PENDING")
+  mailError    String   @default("")
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+/// 조회 상세 로그. 보관 기간(기본 180일)이 지나면 삭제된다. IP 원문은 저장하지 않는다.
+model PageView {
+  id             Int      @id @default(autoincrement())
+  path           String
+  /// 프로젝트 상세 조회일 때만 값이 있다
+  projectId      Int?
+  /// sha256(일별 솔트 + IP + User-Agent)
+  visitorHash    String
+  /// 유입 사이트의 도메인만. 직접 접속이면 빈 문자열
+  referrerDomain String   @default("")
+  utmSource      String   @default("")
+  /// desktop | mobile | tablet
+  device         String
+  createdAt      DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([projectId, createdAt])
+  @@index([visitorHash, path, createdAt])
+}
+
+/// 일별 집계. 상세 로그가 삭제된 뒤에도 계속 보관한다.
+model DailyStat {
+  id        Int    @id @default(autoincrement())
+  /// Asia/Seoul 기준 YYYY-MM-DD
+  date      String
+  path      String
+  projectId Int?
+  views     Int    @default(0)
+  visitors  Int    @default(0)
+
+  @@unique([date, path])
+  @@index([projectId, date])
+}
