@@ -68,13 +68,36 @@ export class MailNotConfiguredError extends Error {
 }
 
 /**
- * 문의 메일을 보낸다.
- * 발신자(From)는 내 SMTP 계정이고, 방문자 주소는 replyTo 에만 넣는다.
+ * 보낸 사람(From) 주소를 정한다.
+ * - SMTP_FROM 이 있으면 그 주소 (발송 서비스처럼 로그인 아이디가 메일 주소가 아닌 경우. 예: contact@fillddak.kr)
+ * - 없으면 SMTP_USER (네이버 SMTP 처럼 로그인 계정이 곧 보내는 주소인 경우)
+ */
+export function resolveFromAddress(env: { SMTP_FROM?: string; SMTP_USER?: string }): string | null {
+  const address = env.SMTP_FROM ?? env.SMTP_USER;
+  return address && address.includes("@") ? address : null;
+}
+
+/**
+ * 메일의 보낸 사람, 받는 사람, 회신 주소를 만든다.
+ * 발신자(From)는 내 발송 주소이고, 방문자 주소는 replyTo 에만 넣는다.
  * 방문자 주소를 From 으로 쓰면 SPF/DMARC 검사에 걸려 스팸 처리되거나 발송이 거부된다.
  */
+export function buildContactEnvelope(
+  input: ContactMailInput,
+  addresses: { from: string; to: string },
+) {
+  return {
+    from: { name: "포트폴리오 문의", address: addresses.from },
+    to: addresses.to,
+    replyTo: { name: input.name, address: input.email },
+  };
+}
+
+/** 문의 메일을 보낸다. */
 export async function sendContactMail(input: ContactMailInput): Promise<void> {
   const env = getEnv();
-  if (!env.CONTACT_TO || !env.SMTP_HOST || !env.SMTP_USER || !env.SMTP_PASS) {
+  const from = resolveFromAddress(env);
+  if (!env.CONTACT_TO || !env.SMTP_HOST || !env.SMTP_USER || !env.SMTP_PASS || !from) {
     throw new MailNotConfiguredError();
   }
 
@@ -94,9 +117,7 @@ export async function sendContactMail(input: ContactMailInput): Promise<void> {
 
   try {
     await transport.sendMail({
-      from: { name: "포트폴리오 문의", address: env.SMTP_USER },
-      to: env.CONTACT_TO,
-      replyTo: { name: input.name, address: input.email },
+      ...buildContactEnvelope(input, { from, to: env.CONTACT_TO }),
       subject,
       text,
       html,
@@ -122,9 +143,11 @@ export type MailErrorInfo = {
 export function describeMailError(error: unknown): MailErrorInfo {
   if (error instanceof MailNotConfiguredError) {
     const env = getEnv();
-    const missing = (["CONTACT_TO", "SMTP_HOST", "SMTP_USER", "SMTP_PASS"] as const).filter(
+    const missing: string[] = (["CONTACT_TO", "SMTP_HOST", "SMTP_USER", "SMTP_PASS"] as const).filter(
       (key) => !env[key],
     );
+    // 발송 서비스는 로그인 아이디가 메일 주소가 아니라서 보내는 주소를 따로 적어야 한다.
+    if (!resolveFromAddress(env)) missing.push("SMTP_FROM(보내는 메일 주소)");
     return {
       code: "NOT_CONFIGURED",
       responseCode: null,
@@ -151,9 +174,9 @@ export function describeMailError(error: unknown): MailErrorInfo {
 function mailErrorHint(code: string, responseCode: number | null): string {
   if (code === "EAUTH" || responseCode === 535) {
     return (
-      "SMTP 로그인이 거부되었습니다. ① 네이버 메일 환경설정 > POP3/IMAP 설정에서 'IMAP/SMTP 사용함'인지, " +
-      "② SMTP_PASS 가 평소 비밀번호가 아니라 애플리케이션 비밀번호인지(네이버는 2단계 인증을 켜고 발급한 " +
-      "애플리케이션 비밀번호만 받는다), ③ SMTP_USER/SMTP_PASS 에 오타가 없는지 확인하세요."
+      "SMTP 로그인이 거부되었습니다. SMTP_USER/SMTP_PASS 를 확인하세요. " +
+      "발송 서비스(Resend 등)는 SMTP_USER 가 서비스에서 정한 고정 아이디이고 SMTP_PASS 가 API 키입니다. " +
+      "네이버 SMTP 는 'IMAP/SMTP 사용함' 설정과 2단계 인증 후 발급한 애플리케이션 비밀번호가 필요합니다."
     );
   }
   if (code === "ECONNECTION" || code === "ESOCKET" || code === "ECONNREFUSED") {
@@ -166,7 +189,7 @@ function mailErrorHint(code: string, responseCode: number | null): string {
     return "SMTP 서버 주소를 찾지 못했습니다. SMTP_HOST 값과 DNS 를 확인하세요.";
   }
   if (code === "EENVELOPE" || responseCode === 550 || responseCode === 553 || responseCode === 554) {
-    return "받는 주소나 보내는 주소를 SMTP 서버가 거부했습니다. CONTACT_TO 와 SMTP_USER(보내는 계정과 같아야 함)를 확인하세요.";
+    return "받는 주소나 보내는 주소를 SMTP 서버가 거부했습니다. CONTACT_TO 와 보내는 주소(SMTP_FROM)를 확인하세요. 발송 서비스에서는 보내는 주소의 도메인이 인증된 상태여야 합니다.";
   }
   if (code === "EMESSAGE" || responseCode === 552) {
     return "메일 내용이 거부되었습니다(용량 초과 또는 스팸 판정). 응답 메시지를 확인하세요.";

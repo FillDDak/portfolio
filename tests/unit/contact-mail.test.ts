@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildContactMail, escapeHtml } from "@/lib/mail/contact-mail";
+import {
+  buildContactEnvelope,
+  buildContactMail,
+  escapeHtml,
+  resolveFromAddress,
+} from "@/lib/mail/contact-mail";
 
 describe("escapeHtml", () => {
   it("HTML 특수 문자를 모두 바꾼다", () => {
@@ -36,5 +41,34 @@ describe("buildContactMail", () => {
     expect(html).not.toContain("홍길동 <b>");
     expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
     expect(html).toContain("홍길동 &lt;b&gt;");
+  });
+});
+
+describe("resolveFromAddress", () => {
+  it("SMTP_FROM 이 있으면 그 주소를 쓴다 (발송 서비스: 로그인 아이디가 메일 주소가 아님)", () => {
+    expect(resolveFromAddress({ SMTP_FROM: "contact@fillddak.kr", SMTP_USER: "resend" })).toBe(
+      "contact@fillddak.kr",
+    );
+  });
+
+  it("SMTP_FROM 이 없으면 SMTP_USER 를 쓴다 (네이버 SMTP)", () => {
+    expect(resolveFromAddress({ SMTP_USER: "someone@naver.com" })).toBe("someone@naver.com");
+  });
+
+  it("메일 주소로 쓸 수 없으면 null 을 돌려준다", () => {
+    expect(resolveFromAddress({ SMTP_USER: "resend" })).toBeNull();
+    expect(resolveFromAddress({})).toBeNull();
+  });
+});
+
+describe("buildContactEnvelope", () => {
+  it("방문자 주소는 회신 주소에만 넣고 보낸 사람에는 쓰지 않는다", () => {
+    const envelope = buildContactEnvelope(
+      { name: "홍길동", email: "hong@example.com", organization: "", subject: "제목", body: "내용" },
+      { from: "contact@fillddak.kr", to: "me@example.com" },
+    );
+    expect(envelope.from.address).toBe("contact@fillddak.kr");
+    expect(envelope.to).toBe("me@example.com");
+    expect(envelope.replyTo).toEqual({ name: "홍길동", address: "hong@example.com" });
   });
 });

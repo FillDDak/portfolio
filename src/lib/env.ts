@@ -27,6 +27,8 @@ const envSchema = z.object({
   SMTP_HOST: optionalString,
   SMTP_PORT: numberWithDefault(z.number().int().positive(), 465),
   SMTP_USER: optionalString,
+  /** 보낸 사람 주소. 비우면 SMTP_USER 를 쓴다. 발송 서비스에서는 인증한 도메인의 주소를 적는다. */
+  SMTP_FROM: optionalString,
   SMTP_PASS: optionalString,
 
   ADMIN_USERNAME: optionalString,
