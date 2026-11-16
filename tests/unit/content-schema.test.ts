@@ -1,0 +1,127 @@
+import { describe, expect, it } from "vitest";
+import { moveInList } from "@/lib/reorder";
+import {
+  certificateSchema,
+  flattenErrors,
+  monitorSchema,
+  profileSchema,
+  projectSchema,
+  skillSchema,
+  slugify,
+} from "@/lib/validation/content";
+
+const project = {
+  title: "쿠폰 시스템",
+  slug: "coupon-system",
+  summary: "선착순 쿠폰 API",
+  teamSize: "4",
+  startDate: "2026-03",
+};
+
+describe("projectSchema", () => {
+  it("필수 값만으로 통과하고 나머지는 기본값을 채운다", () => {
+    const parsed = projectSchema.parse(project);
+    expect(parsed.teamSize).toBe(4);
+    expect(parsed.endDate).toBe("");
+    expect(parsed.isPublished).toBe(false);
+    expect(parsed.tags).toEqual([]);
+    expect(parsed.images).toEqual([]);
+  });
+
+  it("slug 는 영문 소문자, 숫자, 하이픈만 허용한다", () => {
+    for (const slug of ["Coupon", "쿠폰", "a b", "-a", "a-", "a--b", "a/b", "../x"]) {
+      expect(projectSchema.safeParse({ ...project, slug }).success, slug).toBe(false);
+    }
+    expect(projectSchema.safeParse({ ...project, slug: "a1-b2-c3" }).success).toBe(true);
+  });
+
+  it("종료 월이 시작 월보다 빠르면 거부한다", () => {
+    const result = projectSchema.safeParse({ ...project, endDate: "2026-02" });
+    expect(result.success).toBe(false);
+    if (!result.success) expect(flattenErrors(result.error).endDate).toMatch(/빠를 수 없습니다/);
+    expect(projectSchema.safeParse({ ...project, endDate: "2026-03" }).success).toBe(true);
+  });
+
+  it("기간 형식을 검사한다", () => {
+    expect(projectSchema.safeParse({ ...project, startDate: "2026-13" }).success).toBe(false);
+    expect(projectSchema.safeParse({ ...project, startDate: "2026/03" }).success).toBe(false);
+  });
+
+  it("링크는 http(s) 주소만 허용한다", () => {
+    for (const url of ["javascript:alert(1)", "data:text/html,x", "ftp://example.com", "example.com"]) {
+      expect(projectSchema.safeParse({ ...project, demoUrl: url }).success, url).toBe(false);
+    }
+    expect(projectSchema.safeParse({ ...project, demoUrl: "https://example.com/demo" }).success).toBe(true);
+    expect(projectSchema.safeParse({ ...project, demoUrl: "" }).success).toBe(true);
+  });
+
+  it("이미지는 서버가 만든 파일명만 받는다", () => {
+    const file = "0123456789abcdef0123456789abcdef.webp";
+    expect(projectSchema.safeParse({ ...project, coverImage: file }).success).toBe(true);
+    expect(projectSchema.safeParse({ ...project, coverImage: "../secret.webp" }).success).toBe(false);
+    expect(
+      projectSchema.safeParse({ ...project, images: [{ file: "https://evil.example/x.webp", alt: "" }] })
+        .success,
+    ).toBe(false);
+  });
+
+  it("인원은 1명 이상의 정수여야 한다", () => {
+    expect(projectSchema.safeParse({ ...project, teamSize: "0" }).success).toBe(false);
+    expect(projectSchema.safeParse({ ...project, teamSize: "1.5" }).success).toBe(false);
+    expect(projectSchema.safeParse({ ...project, teamSize: "abc" }).success).toBe(false);
+  });
+});
+
+describe("그 밖의 스키마", () => {
+  it("profileSchema: 이름·직무·한 줄 소개는 필수, 링크는 http(s) 만", () => {
+    const base = { name: "최현규", jobTitle: "백엔드 개발자", tagline: "소개" };
+    expect(profileSchema.safeParse(base).success).toBe(true);
+    expect(profileSchema.safeParse({ ...base, name: " " }).success).toBe(false);
+    expect(profileSchema.safeParse({ ...base, notionUrl: "javascript:alert(1)" }).success).toBe(false);
+  });
+
+  it("skillSchema: 숙련도는 두 단계만", () => {
+    expect(skillSchema.safeParse({ name: "Java", level: "USED" }).success).toBe(true);
+    expect(skillSchema.safeParse({ name: "Java", level: "LEARNED" }).success).toBe(true);
+    expect(skillSchema.safeParse({ name: "Java", level: "90%" }).success).toBe(false);
+  });
+
+  it("certificateSchema: 실제로 있는 날짜만", () => {
+    const base = { name: "정보처리기사", issuer: "한국산업인력공단" };
+    expect(certificateSchema.safeParse({ ...base, acquiredAt: "2026-06-12" }).success).toBe(true);
+    expect(certificateSchema.safeParse({ ...base, acquiredAt: "2026-02-30" }).success).toBe(false);
+    expect(certificateSchema.safeParse({ ...base, acquiredAt: "" }).success).toBe(false);
+  });
+
+  it("monitorSchema: http(s) 주소만", () => {
+    expect(monitorSchema.safeParse({ name: "przo", url: "https://przo.kr" }).success).toBe(true);
+    expect(monitorSchema.safeParse({ name: "x", url: "file:///etc/passwd" }).success).toBe(false);
+  });
+});
+
+describe("slugify", () => {
+  it("영문과 숫자만 남기고 하이픈으로 잇는다", () => {
+    expect(slugify("Coupon System v2!")).toBe("coupon-system-v2");
+    expect(slugify("  선착순 Coupon 발급  ")).toBe("coupon");
+    expect(slugify("한글만")).toBe("");
+  });
+});
+
+describe("moveInList: 순서 변경", () => {
+  it("한 칸 위와 아래로 옮긴다", () => {
+    expect(moveInList([1, 2, 3], 2, "up")).toEqual([2, 1, 3]);
+    expect(moveInList([1, 2, 3], 2, "down")).toEqual([1, 3, 2]);
+  });
+
+  it("끝에서는 더 옮길 수 없다", () => {
+    expect(moveInList([1, 2, 3], 1, "up")).toBeNull();
+    expect(moveInList([1, 2, 3], 3, "down")).toBeNull();
+  });
+
+  it("없는 id 는 무시하고 원본은 바꾸지 않는다", () => {
+    const ids = [1, 2, 3];
+    expect(moveInList(ids, 9, "up")).toBeNull();
+    moveInList(ids, 2, "up");
+    expect(ids).toEqual([1, 2, 3]);
+  });
+});

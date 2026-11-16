@@ -48,8 +48,6 @@ const envSchema = z.object({
   TURNSTILE_SITE_KEY: optionalString,
   TURNSTILE_SECRET_KEY: optionalString,
 
-  /** 배포 직후 캐시를 비우는 내부 API 용 비밀값 */
-  DEPLOY_HOOK_SECRET: optionalString,
 });
 
 export type Env = z.infer<typeof envSchema>;

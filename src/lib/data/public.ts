@@ -113,3 +113,52 @@ function splitLines(value: string): string[] {
     .map((item) => item.trim())
     .filter(Boolean);
 }
+
+/** 공개된 프로젝트 한 건의 상세 정보. 없거나 비공개면 null. */
+export async function getPublishedProject(slug: string) {
+  "use cache";
+  cacheLife("max");
+  cacheTag(CACHE_TAGS.projects);
+  const project = await db.project.findFirst({
+    where: { slug, isPublished: true },
+    include: {
+      tags: { orderBy: { sortOrder: "asc" } },
+      images: { orderBy: { sortOrder: "asc" } },
+    },
+  });
+  if (!project) return null;
+  return {
+    id: project.id,
+    title: project.title,
+    slug: project.slug,
+    summary: project.summary,
+    role: project.role,
+    teamSize: project.teamSize,
+    startDate: project.startDate,
+    endDate: project.endDate,
+    highlights: splitLines(project.highlights),
+    body: project.body,
+    coverImage: project.coverImage,
+    demoUrl: project.demoUrl,
+    githubUrl: project.githubUrl,
+    docsUrl: project.docsUrl,
+    isFeatured: project.isFeatured,
+    tags: project.tags.map((tag) => tag.name),
+    images: project.images.map((image) => ({ file: image.file, alt: image.alt })),
+    updatedAt: project.updatedAt.toISOString(),
+  };
+}
+
+export type PublicProject = NonNullable<Awaited<ReturnType<typeof getPublishedProject>>>;
+
+/** 상태 페이지에 표시할 감시 대상 */
+export async function getActiveMonitors() {
+  "use cache";
+  cacheLife("max");
+  cacheTag(CACHE_TAGS.monitors);
+  const monitors = await db.monitor.findMany({
+    where: { isActive: true },
+    orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+  });
+  return monitors.map(({ id, name, url }) => ({ id, name, url }));
+}

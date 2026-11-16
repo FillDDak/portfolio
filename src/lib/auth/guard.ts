@@ -1,11 +1,15 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { readSessionToken, SESSION_COOKIE_NAME, type AdminSession } from "./session";
 
 /** 현재 요청의 관리자 세션. 로그인하지 않았으면 null. */
 export async function getAdminSession(): Promise<AdminSession | null> {
   const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
+  // 만료 여부는 현재 시각과 비교해야 하므로 실제 요청이 올 때만 확인한다.
+  // (링크를 미리 불러오는 사전 렌더링 단계에서는 현재 시각을 쓸 수 없다.)
+  await connection();
   return readSessionToken(token);
 }
 

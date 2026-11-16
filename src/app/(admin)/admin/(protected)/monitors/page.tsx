@@ -1,0 +1,125 @@
+import type { Metadata } from "next";
+import { deleteMonitor, moveMonitor, saveMonitor } from "@/actions/content";
+import {
+  ActionForm,
+  ConfirmDeleteButton,
+  FieldError,
+  MoveButtons,
+  SubmitButton,
+} from "@/components/admin/action-form";
+import { EmptyState, PageHeader, Panel } from "@/components/admin/page-header";
+import { fieldClass, labelClass } from "@/components/ui/field";
+import { requireAdmin } from "@/lib/auth/guard";
+import { db } from "@/lib/db";
+
+export const metadata: Metadata = { title: "상태 감시" };
+
+function MonitorFields({
+  idPrefix,
+  values,
+}: {
+  idPrefix: string;
+  values?: { name: string; url: string; isActive: boolean };
+}) {
+  return (
+    <>
+      <div className="grid gap-3 sm:grid-cols-[14rem_1fr]">
+        <div>
+          <label htmlFor={`${idPrefix}-name`} className={labelClass}>
+            이름
+          </label>
+          <input
+            id={`${idPrefix}-name`}
+            name="name"
+            defaultValue={values?.name}
+            required
+            maxLength={40}
+            placeholder="서비스 이름"
+            className={fieldClass}
+          />
+          <FieldError name="name" />
+        </div>
+        <div>
+          <label htmlFor={`${idPrefix}-url`} className={labelClass}>
+            주소
+          </label>
+          <input
+            id={`${idPrefix}-url`}
+            name="url"
+            type="url"
+            inputMode="url"
+            autoCapitalize="none"
+            spellCheck={false}
+            defaultValue={values?.url}
+            required
+            maxLength={300}
+            placeholder="https://example.com"
+            className={fieldClass}
+          />
+          <FieldError name="url" />
+        </div>
+      </div>
+      <label className="mt-3 flex min-h-11 w-fit items-center gap-2.5">
+        <input
+          type="checkbox"
+          name="isActive"
+          defaultChecked={values?.isActive ?? true}
+          className="size-5 accent-(--accent)"
+        />
+        <span>상태 페이지에 표시</span>
+      </label>
+    </>
+  );
+}
+
+export default async function MonitorsPage() {
+  await requireAdmin();
+  const monitors = await db.monitor.findMany({ orderBy: [{ sortOrder: "asc" }, { id: "asc" }] });
+
+  return (
+    <div className="max-w-4xl">
+      <PageHeader
+        title="상태 감시"
+        description="상태 페이지(/status)에서 정상 여부와 응답 시간을 확인할 주소입니다. 표시할 주소가 없으면 상태 페이지 링크도 숨겨집니다."
+      />
+
+      <div className="space-y-4">
+        {monitors.length === 0 ? <EmptyState>등록한 주소가 없습니다.</EmptyState> : null}
+
+        {monitors.map((monitor, index) => (
+          <Panel key={monitor.id}>
+            <ActionForm action={saveMonitor}>
+              <input type="hidden" name="id" value={monitor.id} />
+              <MonitorFields idPrefix={`monitor-${monitor.id}`} values={monitor} />
+              <div className="mt-2">
+                <SubmitButton variant="secondary">저장</SubmitButton>
+              </div>
+            </ActionForm>
+            <div className="mt-3 flex items-center justify-between gap-2 border-t border-line pt-3">
+              <MoveButtons
+                action={moveMonitor}
+                id={monitor.id}
+                isFirst={index === 0}
+                isLast={index === monitors.length - 1}
+                label={monitor.name}
+              />
+              <ActionForm action={deleteMonitor} showStatus={false}>
+                <input type="hidden" name="id" value={monitor.id} />
+                <ConfirmDeleteButton title={`‘${monitor.name}’ 감시 주소를 삭제할까요?`} />
+              </ActionForm>
+            </div>
+          </Panel>
+        ))}
+
+        <Panel title="주소 추가">
+          <ActionForm action={saveMonitor} resetOnSuccess>
+            <MonitorFields idPrefix="new-monitor" />
+            <div className="mt-2">
+              <SubmitButton pendingText="추가 중…">추가</SubmitButton>
+            </div>
+          </ActionForm>
+        </Panel>
+      </div>
+    </div>
+  );
+}

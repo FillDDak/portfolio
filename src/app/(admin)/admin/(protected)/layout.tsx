@@ -5,7 +5,15 @@ import { AdminNav, type AdminNavItem } from "@/components/admin/admin-nav";
 import { buttonClass } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/auth/guard";
 
-const navItems: AdminNavItem[] = [{ href: "/admin", label: "대시보드" }];
+const navItems: AdminNavItem[] = [
+  { href: "/admin", label: "대시보드" },
+  { href: "/admin/projects", label: "프로젝트" },
+  { href: "/admin/skills", label: "스킬" },
+  { href: "/admin/certificates", label: "자격증" },
+  { href: "/admin/profile", label: "자기소개·링크" },
+  { href: "/admin/resume", label: "PDF" },
+  { href: "/admin/monitors", label: "상태 감시" },
+];
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   return (

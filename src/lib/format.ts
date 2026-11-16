@@ -17,3 +17,18 @@ export function formatDate(value: string): string {
 export function displayUrl(url: string): string {
   return url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/+$/, "");
 }
+
+const dateTimeFormat = new Intl.DateTimeFormat("ko-KR", {
+  timeZone: "Asia/Seoul",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+/** 시각을 한국 시간(Asia/Seoul) 기준 "2026. 11. 16. 21:30" 형태로 표시한다. */
+export function formatDateTime(value: Date): string {
+  return dateTimeFormat.format(value);
+}

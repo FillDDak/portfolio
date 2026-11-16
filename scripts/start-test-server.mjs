@@ -53,7 +53,6 @@ const env = {
   TRUSTED_PROXY_HOPS: "1",
   TURNSTILE_SITE_KEY: "",
   TURNSTILE_SECRET_KEY: "",
-  DEPLOY_HOOK_SECRET: "test-deploy-hook-secret",
 };
 
 const migrate = spawnSync("npx", ["prisma", "migrate", "deploy"], {
