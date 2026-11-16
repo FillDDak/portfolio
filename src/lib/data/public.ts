@@ -1,0 +1,115 @@
+import { cacheLife, cacheTag } from "next/cache";
+import { db } from "@/lib/db";
+
+/**
+ * 공개 페이지에서 쓰는 조회 함수.
+ * 결과는 태그와 함께 캐시되고, 관리자 화면에서 저장할 때 해당 태그를 갱신한다.
+ */
+export const CACHE_TAGS = {
+  profile: "profile",
+  projects: "projects",
+  skills: "skills",
+  certificates: "certificates",
+  monitors: "monitors",
+} as const;
+
+export const ALL_CACHE_TAGS = Object.values(CACHE_TAGS);
+
+export async function getProfile() {
+  "use cache";
+  cacheLife("max");
+  cacheTag(CACHE_TAGS.profile);
+  const profile = await db.profile.findUnique({ where: { id: 1 } });
+  if (!profile) throw new Error("프로필 데이터가 없습니다. 마이그레이션을 먼저 실행하세요.");
+  return {
+    name: profile.name,
+    jobTitle: profile.jobTitle,
+    tagline: profile.tagline,
+    bio: profile.bio,
+    coreStack: splitList(profile.coreStack),
+    githubUrl: profile.githubUrl,
+    velogUrl: profile.velogUrl,
+    notionUrl: profile.notionUrl,
+    hasResume: Boolean(profile.resumeFile),
+    resumeUpdatedAt: profile.resumeUpdatedAt?.toISOString() ?? null,
+  };
+}
+
+export type PublicProfile = Awaited<ReturnType<typeof getProfile>>;
+
+export async function getPublishedProjects() {
+  "use cache";
+  cacheLife("max");
+  cacheTag(CACHE_TAGS.projects);
+  const projects = await db.project.findMany({
+    where: { isPublished: true },
+    orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { id: "asc" }],
+    include: { tags: { orderBy: { sortOrder: "asc" } } },
+  });
+  return projects.map((project) => ({
+    id: project.id,
+    title: project.title,
+    slug: project.slug,
+    summary: project.summary,
+    role: project.role,
+    teamSize: project.teamSize,
+    startDate: project.startDate,
+    endDate: project.endDate,
+    highlights: splitLines(project.highlights),
+    coverImage: project.coverImage,
+    isFeatured: project.isFeatured,
+    tags: project.tags.map((tag) => tag.name),
+  }));
+}
+
+export type PublicProjectCard = Awaited<ReturnType<typeof getPublishedProjects>>[number];
+
+export async function getSkillGroups() {
+  "use cache";
+  cacheLife("max");
+  cacheTag(CACHE_TAGS.skills);
+  const categories = await db.skillCategory.findMany({
+    orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+    include: { skills: { orderBy: [{ sortOrder: "asc" }, { id: "asc" }] } },
+  });
+  // 스킬이 하나도 없는 분류는 공개 페이지에 보여주지 않는다.
+  return categories
+    .filter((category) => category.skills.length > 0)
+    .map((category) => ({
+      id: category.id,
+      name: category.name,
+      skills: category.skills.map((skill) => ({
+        id: skill.id,
+        name: skill.name,
+        level: skill.level === "LEARNED" ? ("LEARNED" as const) : ("USED" as const),
+      })),
+    }));
+}
+
+export type PublicSkillGroup = Awaited<ReturnType<typeof getSkillGroups>>[number];
+
+export async function getCertificates() {
+  "use cache";
+  cacheLife("max");
+  cacheTag(CACHE_TAGS.certificates);
+  const certificates = await db.certificate.findMany({
+    orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+  });
+  return certificates.map(({ id, name, issuer, acquiredAt }) => ({ id, name, issuer, acquiredAt }));
+}
+
+export type PublicCertificate = Awaited<ReturnType<typeof getCertificates>>[number];
+
+function splitList(value: string): string[] {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function splitLines(value: string): string[] {
+  return value
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}

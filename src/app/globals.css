@@ -1,1 +1,195 @@
 @import "tailwindcss";
+@import "./fonts.css";
+
+/*
+ * 색은 중립색 + 포인트 1색(딥 블루)만 쓴다.
+ * 컴포넌트에서는 아래 토큰(bg-background, text-muted, border-line, bg-accent ...)만 사용하고
+ * 다크 모드는 토큰 값만 바꿔서 처리한다.
+ */
+:root {
+  color-scheme: light;
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --surface-2: #f0f2f6;
+  --text: #141821;
+  --muted: #566070;
+  --line: #e1e5ec;
+  --line-strong: #c9d0db;
+  --accent: #1f3fae;
+  --accent-hover: #18328c;
+  --accent-ink: #1f3fae;
+  --accent-soft: #e9efff;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --success: #17703f;
+  --success-soft: #e6f5ec;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0d1017;
+  --surface: #141923;
+  --surface-2: #1b212d;
+  --text: #e9ecf2;
+  --muted: #9ca6b7;
+  --line: #252c3a;
+  --line-strong: #364052;
+  --accent: #3457d5;
+  --accent-hover: #4266e6;
+  --accent-ink: #9fb9ff;
+  --accent-soft: #1a2442;
+  --danger: #ff9a8f;
+  --danger-soft: #3a1c1a;
+  --success: #7fd6a3;
+  --success-soft: #15301f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0d1017;
+    --surface: #141923;
+    --surface-2: #1b212d;
+    --text: #e9ecf2;
+    --muted: #9ca6b7;
+    --line: #252c3a;
+    --line-strong: #364052;
+    --accent: #3457d5;
+    --accent-hover: #4266e6;
+    --accent-ink: #9fb9ff;
+    --accent-soft: #1a2442;
+    --danger: #ff9a8f;
+    --danger-soft: #3a1c1a;
+    --success: #7fd6a3;
+    --success-soft: #15301f;
+  }
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-foreground: var(--text);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --font-sans:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Malgun Gothic", "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas, monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* 고정 헤더에 섹션 제목이 가려지지 않게 한다 */
+    scroll-padding-top: 5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.7;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent-ink);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* 페이지 진입 시 약한 페이드 */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility fade-in {
+  animation: fade-in 0.4s ease-out both;
+}
+
+/* 테마 전환 버튼 아이콘: 현재 밝은 화면이면 달, 어두운 화면이면 해를 보여준다 */
+.theme-icon-dark {
+  display: none;
+}
+:root[data-theme="dark"] .theme-icon-light {
+  display: none;
+}
+:root[data-theme="dark"] .theme-icon-dark {
+  display: block;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-icon-light {
+    display: none;
+  }
+  :root:not([data-theme="light"]) .theme-icon-dark {
+    display: block;
+  }
+}
+
+/* 모바일 메뉴: 화면 아래에서 올라오는 시트 */
+dialog.sheet {
+  margin: auto 0 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: 85dvh;
+  border: 0;
+  border-radius: 1rem 1rem 0 0;
+  background: var(--surface);
+  color: var(--text);
+  padding: 0;
+}
+dialog.sheet::backdrop {
+  background: rgb(8 11 18 / 0.5);
+}
+dialog.sheet[open] {
+  animation: sheet-up 0.2s ease-out both;
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
