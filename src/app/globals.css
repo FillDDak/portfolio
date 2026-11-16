@@ -2,15 +2,36 @@
 @import "./fonts.css";
 
 /*
- * 코드 느낌의 글자(헤더의 도메인, 스택 태그, 섹션 번호, 코드 블록)에 쓰는 JetBrains Mono.
- * 영문·숫자만 필요해서 라틴 문자 파일 하나(40KB)만 셀프 호스팅한다. 한글은 뒤따르는 글꼴로 표시된다.
+ * 코드 느낌의 글자(헤더의 도메인, 스택 태그, 섹션 번호, 코드 블록)에 쓰는 IBM Plex Mono.
+ * 영문·숫자만 필요해서 라틴 문자 파일을 실제로 쓰는 굵기(400, 500, 600)만 셀프 호스팅한다(각 15KB).
+ * 한글은 뒤따르는 글꼴로 표시된다.
  */
 @font-face {
-  font-family: "JetBrains Mono";
+  font-family: "IBM Plex Mono";
   font-style: normal;
   font-display: swap;
-  font-weight: 100 800;
-  src: url(/fonts/jetbrains-mono/jetbrains-mono-latin-wght-normal.woff2) format("woff2-variations");
+  font-weight: 400;
+  src: url(/fonts/ibm-plex-mono/ibm-plex-mono-latin-400-normal.woff2) format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url(/fonts/ibm-plex-mono/ibm-plex-mono-latin-500-normal.woff2) format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url(/fonts/ibm-plex-mono/ibm-plex-mono-latin-600-normal.woff2) format("woff2");
   unicode-range:
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
@@ -100,7 +121,7 @@
     "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
     "Malgun Gothic", "Segoe UI", sans-serif;
   --font-mono:
-    "JetBrains Mono", ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas,
+    "IBM Plex Mono", ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas,
     "Pretendard Variable", monospace;
 }
 
