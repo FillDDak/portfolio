@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import { db } from "@/lib/db";
 import { getEnv } from "@/lib/env";
-import { MailNotConfiguredError, sendContactMail } from "@/lib/mail/contact-mail";
+import { describeMailError, sendContactMail } from "@/lib/mail/contact-mail";
 import { getSharedRateLimiter } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request-ip";
 import { contactSchema, toFieldErrors, type ContactFieldErrors } from "@/lib/validation/contact";
@@ -140,16 +140,34 @@ export async function POST(request: Request) {
     });
     return json({ ok: true }, 200);
   } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
+    const info = describeMailError(error);
+    const detail = [
+      info.code,
+      info.responseCode ? String(info.responseCode) : "",
+      info.command,
+      info.message,
+    ]
+      .filter(Boolean)
+      .join(" | ");
     await db.contactMessage.update({
       where: { id: message.id },
       data: { mailStatus: "FAILED", mailError: detail.slice(0, 500) },
     });
-    if (!(error instanceof MailNotConfiguredError)) {
-      console.error("[contact] 메일 발송 실패:", detail);
-    } else {
-      console.warn("[contact]", detail);
-    }
+
+    // 발송 실패 로그. 운영에서는 `journalctl -u portfolio` 로 볼 수 있다.
+    // 방문자가 쓴 내용과 메일 주소, SMTP 비밀번호는 남기지 않는다.
+    const smtpResponse = info.responseCode ? ` / SMTP 응답 ${info.responseCode}` : "";
+    const smtpStep = info.command ? ` / 단계 ${info.command}` : "";
+    console.error(
+      [
+        `[contact] 메일 발송 실패 (문의 #${message.id}, ${new Date().toISOString()})`,
+        `  코드: ${info.code}${smtpResponse}${smtpStep}`,
+        `  서버: ${env.SMTP_HOST ?? "(미설정)"}:${env.SMTP_PORT}`,
+        `  메시지: ${info.message}`,
+        `  확인할 것: ${info.hint}`,
+      ].join("\n"),
+    );
+
     return json(
       {
         ok: false,

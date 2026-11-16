@@ -105,3 +105,74 @@ export async function sendContactMail(input: ContactMailInput): Promise<void> {
     transport.close();
   }
 }
+
+export type MailErrorInfo = {
+  /** nodemailer 오류 코드. 예: EAUTH, ECONNECTION, ETIMEDOUT */
+  code: string;
+  /** SMTP 응답 코드. 예: 535 */
+  responseCode: number | null;
+  /** 실패한 SMTP 단계. 예: AUTH PLAIN, CONN */
+  command: string;
+  message: string;
+  /** 사람이 바로 확인해 볼 수 있는 원인과 조치 */
+  hint: string;
+};
+
+/** 발송 오류를 로그에 남기기 좋은 형태로 정리한다. 비밀번호 같은 설정값은 포함하지 않는다. */
+export function describeMailError(error: unknown): MailErrorInfo {
+  if (error instanceof MailNotConfiguredError) {
+    const env = getEnv();
+    const missing = (["CONTACT_TO", "SMTP_HOST", "SMTP_USER", "SMTP_PASS"] as const).filter(
+      (key) => !env[key],
+    );
+    return {
+      code: "NOT_CONFIGURED",
+      responseCode: null,
+      command: "",
+      message: error.message,
+      hint: `.env 에 다음 값이 비어 있습니다: ${missing.join(", ")}. 채운 뒤 서버를 재시작하세요.`,
+    };
+  }
+
+  const source = (error ?? {}) as {
+    code?: unknown;
+    responseCode?: unknown;
+    command?: unknown;
+    message?: unknown;
+  };
+  const code = typeof source.code === "string" ? source.code : "UNKNOWN";
+  const responseCode = typeof source.responseCode === "number" ? source.responseCode : null;
+  const command = typeof source.command === "string" ? source.command : "";
+  const message = typeof source.message === "string" ? source.message : String(error);
+
+  return { code, responseCode, command, message, hint: mailErrorHint(code, responseCode) };
+}
+
+function mailErrorHint(code: string, responseCode: number | null): string {
+  if (code === "EAUTH" || responseCode === 535) {
+    return (
+      "SMTP 로그인이 거부되었습니다. ① 네이버 메일 환경설정 > POP3/IMAP 설정에서 'IMAP/SMTP 사용함'인지, " +
+      "② SMTP_PASS 가 평소 비밀번호가 아니라 애플리케이션 비밀번호인지(네이버는 2단계 인증을 켜고 발급한 " +
+      "애플리케이션 비밀번호만 받는다), ③ SMTP_USER/SMTP_PASS 에 오타가 없는지 확인하세요."
+    );
+  }
+  if (code === "ECONNECTION" || code === "ESOCKET" || code === "ECONNREFUSED") {
+    return "SMTP 서버에 연결하지 못했습니다. SMTP_HOST 와 SMTP_PORT(465 또는 587), 서버의 아웃바운드 방화벽을 확인하세요.";
+  }
+  if (code === "ETIMEDOUT" || code === "ETIME") {
+    return "SMTP 서버 응답이 시간 안에 오지 않았습니다. 네트워크 상태나 방화벽(465/587 포트 차단 여부)을 확인하세요.";
+  }
+  if (code === "EDNS" || code === "ENOTFOUND") {
+    return "SMTP 서버 주소를 찾지 못했습니다. SMTP_HOST 값과 DNS 를 확인하세요.";
+  }
+  if (code === "EENVELOPE" || responseCode === 550 || responseCode === 553 || responseCode === 554) {
+    return "받는 주소나 보내는 주소를 SMTP 서버가 거부했습니다. CONTACT_TO 와 SMTP_USER(보내는 계정과 같아야 함)를 확인하세요.";
+  }
+  if (code === "EMESSAGE" || responseCode === 552) {
+    return "메일 내용이 거부되었습니다(용량 초과 또는 스팸 판정). 응답 메시지를 확인하세요.";
+  }
+  if (responseCode !== null && responseCode >= 400 && responseCode < 500) {
+    return "SMTP 서버가 일시적으로 거부했습니다(발송 한도 초과일 수 있음). 잠시 후 다시 시도하세요.";
+  }
+  return "원인을 자동으로 분류하지 못했습니다. message 의 SMTP 응답을 확인하세요.";
+}
