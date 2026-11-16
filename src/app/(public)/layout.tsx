@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { Analytics } from "@/components/public/analytics";
 import { getProfileLinks } from "@/components/public/home-sections";
 import { SiteFooter } from "@/components/public/site-footer";
 import { SiteHeader, type NavItem } from "@/components/public/site-header";
@@ -38,6 +40,10 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
         {children}
       </main>
       <SiteFooter name={profile.name} showStatus={false} />
+      {/* 방문 기록과 실시간 접속 신호. 현재 경로를 읽으므로 Suspense 로 감싼다. */}
+      <Suspense fallback={null}>
+        <Analytics />
+      </Suspense>
     </>
   );
 }

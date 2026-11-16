@@ -29,4 +29,17 @@ export async function register() {
     }
   };
   setTimeout(run, 300).unref();
+
+  // 보관 기간(기본 180일)이 지난 조회 상세 로그를 하루에 한 번 지운다. 일별 집계는 남는다.
+  const purge = async () => {
+    try {
+      const { purgeOldPageViews } = await import("@/lib/analytics/record");
+      const removed = await purgeOldPageViews();
+      if (removed > 0) console.log(`[stats] 보관 기간이 지난 조회 기록 ${removed}건을 삭제했습니다.`);
+    } catch (error) {
+      console.error("[stats] 조회 기록 정리에 실패했습니다:", error);
+    }
+  };
+  setTimeout(purge, 60_000).unref();
+  setInterval(purge, 24 * 60 * 60 * 1000).unref();
 }

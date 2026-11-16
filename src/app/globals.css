@@ -333,3 +333,14 @@ dialog.sheet[open] {
 .prose-content input[type="checkbox"] {
   margin-right: 0.4em;
 }
+
+/* 관리자 차트의 축 글자. 좁은 화면에서는 차트가 축소되므로 그만큼 키워 12px 안팎으로 보이게 한다. */
+.chart-text {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 767px) {
+  .chart-text {
+    font-size: 23px;
+  }
+}

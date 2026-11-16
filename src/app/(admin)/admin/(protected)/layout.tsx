@@ -7,6 +7,8 @@ import { requireAdmin } from "@/lib/auth/guard";
 
 const navItems: AdminNavItem[] = [
   { href: "/admin", label: "대시보드" },
+  { href: "/admin/views", label: "조회 기록" },
+  { href: "/admin/messages", label: "받은 문의" },
   { href: "/admin/projects", label: "프로젝트" },
   { href: "/admin/skills", label: "스킬" },
   { href: "/admin/certificates", label: "자격증" },
