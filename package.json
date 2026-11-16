@@ -13,15 +13,20 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "seed:dev": "tsx prisma/seed.dev.ts",
-    "seed:dev:clear": "tsx prisma/seed.dev.ts --clear"
+    "seed:dev:clear": "tsx prisma/seed.dev.ts --clear",
+    "hash-password": "node scripts/hash-password.mjs",
+    "dev:smtp": "node scripts/dev-smtp.mjs"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.1",
     "@prisma/client": "^7.10.1",
+    "bcryptjs": "^3.0.3",
+    "jose": "^6.2.17",
     "next": "16.4.6",
     "nodemailer": "^10.6.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {
