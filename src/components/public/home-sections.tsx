@@ -125,7 +125,7 @@ const linkIcons: Record<string, typeof GitHubIcon> = {
 
 export function LinksSection({ index, links }: { index: number; links: ProfileLink[] }) {
   return (
-    <Section id="links" index={index} title="링크">
+    <Section id="links" index={index} title="외부 링크">
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {links.map((link) => {
           const Icon = linkIcons[link.key] ?? NoteIcon;

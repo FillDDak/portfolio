@@ -47,7 +47,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
     projects.length > 0 && { href: "/#projects", label: "프로젝트" },
     skillGroups.length > 0 && { href: "/#skills", label: "스킬" },
     certificates.length > 0 && { href: "/#certificates", label: "자격증" },
-    getProfileLinks(profile).length > 0 && { href: "/#links", label: "링크" },
+    getProfileLinks(profile).length > 0 && { href: "/#links", label: "외부 링크" },
     { href: "/#contact", label: "문의" },
   ].filter((item): item is NavItem => Boolean(item));
 

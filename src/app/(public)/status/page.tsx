@@ -25,7 +25,10 @@ export default async function StatusPage() {
       <h1 className="text-[1.875rem] leading-tight font-bold tracking-tight md:text-[2.25rem]">
         서비스 상태
       </h1>
-      <p className="mt-2 text-muted">운영 중인 서비스가 지금 응답하는지 확인한 결과입니다.</p>
+      <p className="mt-2 text-muted">
+        운영 중인 서비스가 지금 응답하는지 확인한 결과입니다. 결과는 1분 동안 유지되므로 최대 1분 전
+        상태일 수 있습니다.
+      </p>
 
       {/* 이름과 주소는 바로 보여 주고, 확인 결과는 요청 시점에 채운다. */}
       <Suspense fallback={<StatusBoard monitors={monitors} results={null} />}>
@@ -115,10 +118,9 @@ function StatusBoard({
         })}
       </ul>
 
-      <p className="mt-4 text-sm text-muted">
-        {checkedAt ? `${formatDateTime(new Date(checkedAt))} 확인. ` : null}
-        확인 결과는 1분 동안 유지되므로 최대 1분 전 상태일 수 있습니다.
-      </p>
+      {checkedAt ? (
+        <p className="mt-4 text-sm text-muted">{formatDateTime(new Date(checkedAt))} 확인</p>
+      ) : null}
     </>
   );
 }
