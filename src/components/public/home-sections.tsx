@@ -1,11 +1,5 @@
-import { ArrowUpRightIcon, GitHubIcon, NoteIcon, PenIcon } from "@/components/icons";
-import type {
-  PublicCertificate,
-  PublicProfile,
-  PublicProjectCard,
-  PublicSkillGroup,
-} from "@/lib/data/public";
-import { displayUrl, formatDate } from "@/lib/format";
+import type { PublicCertificate, PublicProjectCard, PublicSkillGroup } from "@/lib/data/public";
+import { formatDate } from "@/lib/format";
 import { ProjectCard } from "./project-card";
 import { Section } from "./section";
 
@@ -101,59 +95,6 @@ export function CertificatesSection({
             </p>
           </li>
         ))}
-      </ul>
-    </Section>
-  );
-}
-
-export type ProfileLink = { key: string; label: string; url: string };
-
-/** 값이 있는 링크만 골라낸다. */
-export function getProfileLinks(profile: PublicProfile): ProfileLink[] {
-  return [
-    { key: "github", label: "GitHub", url: profile.githubUrl },
-    { key: "velog", label: "Velog", url: profile.velogUrl },
-    { key: "notion", label: "Notion", url: profile.notionUrl },
-  ].filter((link) => link.url);
-}
-
-const linkIcons: Record<string, typeof GitHubIcon> = {
-  github: GitHubIcon,
-  velog: PenIcon,
-  notion: NoteIcon,
-};
-
-export function LinksSection({ index, links }: { index: number; links: ProfileLink[] }) {
-  return (
-    <Section id="links" index={index} title="외부 링크">
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {links.map((link) => {
-          const Icon = linkIcons[link.key] ?? NoteIcon;
-          return (
-            <li key={link.key}>
-              <a
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex min-h-16 items-center gap-3.5 rounded-xl border border-line bg-surface px-4 py-3 transition-colors duration-150 hover:border-line-strong"
-              >
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-surface-2">
-                  <Icon />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block font-semibold">{link.label}</span>
-                  <span className="block truncate text-sm text-muted">{displayUrl(link.url)}</span>
-                </span>
-                <ArrowUpRightIcon
-                  width={18}
-                  height={18}
-                  className="shrink-0 text-muted transition-colors group-hover:text-accent-ink"
-                />
-                <span className="sr-only">(새 탭에서 열림)</span>
-              </a>
-            </li>
-          );
-        })}
       </ul>
     </Section>
   );

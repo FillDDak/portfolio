@@ -4,10 +4,8 @@ import { ContactForm } from "@/components/public/contact-form";
 import { Hero } from "@/components/public/hero";
 import {
   CertificatesSection,
-  LinksSection,
   ProjectsSection,
   SkillsSection,
-  getProfileLinks,
 } from "@/components/public/home-sections";
 import { Section } from "@/components/public/section";
 import {
@@ -26,7 +24,6 @@ export default async function HomePage() {
     getSkillGroups(),
     getCertificates(),
   ]);
-  const links = getProfileLinks(profile);
 
   // 데이터가 없는 섹션은 만들지 않고, 번호는 실제로 보이는 섹션에만 순서대로 매긴다.
   let index = 0;
@@ -45,7 +42,6 @@ export default async function HomePage() {
       {certificates.length > 0 ? (
         <CertificatesSection index={++index} certificates={certificates} />
       ) : null}
-      {links.length > 0 ? <LinksSection index={++index} links={links} /> : null}
       <Section
         id="contact"
         index={++index}

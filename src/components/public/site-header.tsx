@@ -2,6 +2,7 @@ import Link from "next/link";
 import { buttonClass } from "@/components/ui/button";
 import { SITE_MARK } from "@/lib/site";
 import { MobileMenu } from "./mobile-menu";
+import { profileLinkIcons, type ProfileLink } from "./profile-links";
 import { ThemeToggle } from "./theme-toggle";
 
 /**
@@ -10,7 +11,7 @@ import { ThemeToggle } from "./theme-toggle";
  */
 export type NavItem = { href: string; label: string };
 
-export function SiteHeader({ items }: { items: NavItem[] }) {
+export function SiteHeader({ items, links }: { items: NavItem[]; links: ProfileLink[] }) {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-5 md:h-16 md:px-8">
@@ -37,6 +38,28 @@ export function SiteHeader({ items }: { items: NavItem[] }) {
               ))}
             </ul>
           </nav>
+          {/* 스크롤을 내린 뒤에도 외부 프로필로 바로 갈 수 있게 헤더에 아이콘으로 둔다(모바일은 메뉴 시트 안). */}
+          {links.length > 0 ? (
+            <ul aria-label="외부 프로필" className="hidden items-center md:flex">
+              {links.map((link) => {
+                const Icon = profileLinkIcons[link.key];
+                return (
+                  <li key={link.key}>
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${link.label} (새 탭에서 열림)`}
+                      title={link.label}
+                      className="inline-flex size-11 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
+                    >
+                      <Icon />
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
           <ThemeToggle />
           <div className="ml-2 hidden md:block">
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
@@ -44,7 +67,7 @@ export function SiteHeader({ items }: { items: NavItem[] }) {
               문의하기
             </a>
           </div>
-          <MobileMenu items={items} />
+          <MobileMenu items={items} links={links} />
         </div>
       </div>
     </header>

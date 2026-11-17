@@ -1,12 +1,13 @@
 "use client";
 
 import { useRef } from "react";
-import { CloseIcon, MailIcon, MenuIcon } from "@/components/icons";
+import { ArrowUpRightIcon, CloseIcon, MailIcon, MenuIcon } from "@/components/icons";
 import { buttonClass } from "@/components/ui/button";
+import { profileLinkIcons, type ProfileLink } from "./profile-links";
 import type { NavItem } from "./site-header";
 
 /** 모바일 내비게이션. 엄지로 닿기 쉽도록 화면 아래쪽 시트로 연다. */
-export function MobileMenu({ items }: { items: NavItem[] }) {
+export function MobileMenu({ items, links }: { items: NavItem[]; links: ProfileLink[] }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const close = () => dialogRef.current?.close();
 
@@ -58,6 +59,29 @@ export function MobileMenu({ items }: { items: NavItem[] }) {
               ))}
             </ul>
           </nav>
+          {links.length > 0 ? (
+            <ul aria-label="외부 프로필" className="mt-3 flex flex-wrap gap-x-5">
+              {links.map((link) => {
+                const Icon = profileLinkIcons[link.key];
+                return (
+                  <li key={link.key}>
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={close}
+                      className="inline-flex min-h-11 items-center gap-2 font-semibold text-muted hover:text-foreground"
+                    >
+                      <Icon width={18} height={18} />
+                      {link.label}
+                      <ArrowUpRightIcon width={14} height={14} />
+                      <span className="sr-only">(새 탭에서 열림)</span>
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
             href="/#contact"

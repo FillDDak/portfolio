@@ -1,17 +1,15 @@
 import Link from "next/link";
-import { FileIcon, GitHubIcon, MailIcon, PenIcon } from "@/components/icons";
+import { ArrowUpRightIcon, FileIcon, MailIcon } from "@/components/icons";
 import { buttonClass } from "@/components/ui/button";
 import type { PublicProfile } from "@/lib/data/public";
+import { getProfileLinks, profileLinkIcons } from "./profile-links";
 
 /**
  * 첫 화면. 스크롤 없이 이름, 직무, 한 줄 소개, 핵심 스택, 주요 버튼이 보여야 한다.
- * 값이 없는 항목(핵심 스택, PDF, 링크)은 자리 자체를 만들지 않는다.
+ * 값이 없는 항목(핵심 스택, PDF, 외부 링크)은 자리 자체를 만들지 않는다.
  */
 export function Hero({ profile }: { profile: PublicProfile }) {
-  const buttonCount =
-    1 + Number(profile.hasResume) + Number(Boolean(profile.githubUrl)) + Number(Boolean(profile.velogUrl));
-  // 모바일 2열 배치에서 버튼 수가 홀수면 문의하기를 한 줄 전체로 넓혀 빈칸이 생기지 않게 한다.
-  const primaryWide = buttonCount % 2 === 1 ? "col-span-2" : "";
+  const links = getProfileLinks(profile);
 
   return (
     <section aria-labelledby="hero-heading" className="fade-in">
@@ -50,42 +48,49 @@ export function Hero({ profile }: { profile: PublicProfile }) {
           </div>
         ) : null}
 
+        {/* 이 사이트 안에서 하는 행동(문의, PDF)은 버튼으로 두고, 외부 프로필은 그 아래 가벼운 링크 한 줄로 둔다. */}
         <div className="mt-6 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap md:mt-9 md:gap-3">
-          <a href="#contact" className={buttonClass("primary", `sm:min-w-32 ${primaryWide}`)}>
+          <a
+            href="#contact"
+            className={buttonClass("primary", `sm:min-w-36 ${profile.hasResume ? "" : "col-span-2"}`)}
+          >
             <MailIcon />
             문의하기
           </a>
           {profile.hasResume ? (
-            <Link href="/resume" className={buttonClass("secondary", "sm:min-w-32")}>
+            <Link href="/resume" className={buttonClass("secondary", "sm:min-w-36")}>
               <FileIcon />
               PDF 보기
             </Link>
           ) : null}
-          {profile.githubUrl ? (
-            <a
-              href={profile.githubUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={buttonClass("secondary", "sm:min-w-32")}
-            >
-              <GitHubIcon />
-              GitHub
-              <span className="sr-only">(새 탭에서 열림)</span>
-            </a>
-          ) : null}
-          {profile.velogUrl ? (
-            <a
-              href={profile.velogUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={buttonClass("secondary", "sm:min-w-32")}
-            >
-              <PenIcon />
-              Velog
-              <span className="sr-only">(새 탭에서 열림)</span>
-            </a>
-          ) : null}
         </div>
+
+        {links.length > 0 ? (
+          <ul aria-label="외부 프로필" className="mt-3 flex flex-wrap gap-x-5 md:mt-4">
+            {links.map((link) => {
+              const Icon = profileLinkIcons[link.key];
+              return (
+                <li key={link.key}>
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group -mx-1 inline-flex min-h-11 items-center gap-2 px-1 text-[0.9375rem] font-semibold text-muted transition-colors hover:text-foreground"
+                  >
+                    <Icon width={18} height={18} />
+                    {link.label}
+                    <ArrowUpRightIcon
+                      width={14}
+                      height={14}
+                      className="transition-colors group-hover:text-accent-ink"
+                    />
+                    <span className="sr-only">(새 탭에서 열림)</span>
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
       </div>
     </section>
   );

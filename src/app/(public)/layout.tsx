@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { SITE_MARK } from "@/lib/site";
 import { Analytics } from "@/components/public/analytics";
-import { getProfileLinks } from "@/components/public/home-sections";
+import { getProfileLinks } from "@/components/public/profile-links";
 import { SiteFooter } from "@/components/public/site-footer";
 import { SiteHeader, type NavItem } from "@/components/public/site-header";
 import {
@@ -47,7 +47,6 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
     projects.length > 0 && { href: "/#projects", label: "프로젝트" },
     skillGroups.length > 0 && { href: "/#skills", label: "스킬" },
     certificates.length > 0 && { href: "/#certificates", label: "자격증" },
-    getProfileLinks(profile).length > 0 && { href: "/#links", label: "외부 링크" },
     { href: "/#contact", label: "문의" },
   ].filter((item): item is NavItem => Boolean(item));
 
@@ -59,7 +58,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
       >
         본문으로 건너뛰기
       </a>
-      <SiteHeader items={items} />
+      <SiteHeader items={items} links={getProfileLinks(profile)} />
       <main id="main" className="flex-1">
         {children}
       </main>
