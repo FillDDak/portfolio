@@ -12,7 +12,7 @@ export function Hero({ profile }: { profile: PublicProfile }) {
   const links = getProfileLinks(profile);
 
   return (
-    <section aria-labelledby="hero-heading" className="fade-in">
+    <section id="about" aria-labelledby="hero-heading" className="fade-in">
       <div className="mx-auto max-w-5xl px-5 pt-8 pb-12 md:px-8 md:pt-20 md:pb-24">
         <p className="flex items-center gap-2.5 text-[0.9375rem] font-semibold text-accent-ink md:text-base">
           <span aria-hidden="true" className="h-px w-6 bg-accent-ink" />

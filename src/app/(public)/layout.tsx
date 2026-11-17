@@ -44,6 +44,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
 
   // 내용이 있는 섹션만 메뉴에 넣는다.
   const items: NavItem[] = [
+    { href: "/#about", label: "소개" },
     projects.length > 0 && { href: "/#projects", label: "프로젝트" },
     skillGroups.length > 0 && { href: "/#skills", label: "스킬" },
     certificates.length > 0 && { href: "/#certificates", label: "자격증" },
