@@ -17,7 +17,8 @@ async function visit(page: Page, path: string) {
 /** 관리자 조회 기록 화면에 표시되는 전체 건수 */
 async function viewCount(admin: Page): Promise<number> {
   await admin.goto("/admin/views");
-  const text = await admin.getByText(/[\d,]+건/).first().innerText();
+  // 메뉴의 '읽지 않은 문의 N건' 배지와 섞이지 않게 본문 안에서만 찾는다.
+  const text = await admin.locator("main").getByText(/[\d,]+건/).first().innerText();
   return Number(text.match(/([\d,]+)건/)?.[1]?.replaceAll(",", ""));
 }
 
