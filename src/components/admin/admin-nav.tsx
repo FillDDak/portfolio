@@ -5,8 +5,11 @@ import { usePathname } from "next/navigation";
 
 export type AdminNavItem = { href: string; label: string };
 
+/** 메뉴 옆에 붙이는 숫자 배지. 키는 메뉴 주소, 값은 개수와 화면 낭독기용 설명. */
+export type AdminNavBadges = Record<string, { count: number; label: string }>;
+
 /** 관리자 메뉴. 모바일에서는 가로로 밀어서 보는 탭, PC 에서는 왼쪽 세로 목록. */
-export function AdminNav({ items }: { items: AdminNavItem[] }) {
+export function AdminNav({ items, badges = {} }: { items: AdminNavItem[]; badges?: AdminNavBadges }) {
   const pathname = usePathname();
 
   return (
@@ -15,18 +18,28 @@ export function AdminNav({ items }: { items: AdminNavItem[] }) {
         {items.map((item) => {
           const active =
             item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
+          const badge = badges[item.href];
           return (
             <li key={item.href} className="shrink-0">
               <Link
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-h-11 items-center rounded-lg px-3.5 text-[0.9375rem] font-medium whitespace-nowrap transition-colors ${
+                // relative: 배지 안의 sr-only(절대 위치) 글자가 가로 스크롤 영역을 벗어나 페이지를 넓히지 않게 한다.
+                className={`relative flex min-h-11 items-center gap-2 rounded-lg px-3.5 text-[0.9375rem] font-medium whitespace-nowrap transition-colors lg:justify-between ${
                   active
                     ? "bg-accent-soft text-accent-ink"
                     : "text-muted hover:bg-surface-2 hover:text-foreground"
                 }`}
               >
                 {item.label}
+                {badge && badge.count > 0 ? (
+                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-bold text-white tabular-nums">
+                    <span aria-hidden="true">{badge.count > 99 ? "99+" : badge.count}</span>
+                    <span className="sr-only">
+                      ({badge.label} {badge.count}건)
+                    </span>
+                  </span>
+                ) : null}
               </Link>
             </li>
           );

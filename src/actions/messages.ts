@@ -18,6 +18,21 @@ export async function setMessageRead(formData: FormData): Promise<ActionResult> 
   }
 }
 
+/** 읽지 않은 문의를 한 번에 모두 읽음으로 바꾼다. */
+export async function markAllMessagesRead(): Promise<ActionResult> {
+  await requireAdmin();
+  try {
+    const { count } = await db.contactMessage.updateMany({
+      where: { isRead: false },
+      data: { isRead: true },
+    });
+    return ok(count > 0 ? `${count.toLocaleString("ko-KR")}건을 읽음 처리했습니다.` : "읽지 않은 문의가 없습니다.");
+  } catch (error) {
+    console.error("[admin] 문의 전체 읽음 처리 실패", error);
+    return fail("변경하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+  }
+}
+
 export async function deleteMessage(formData: FormData): Promise<ActionResult> {
   await requireAdmin();
   try {

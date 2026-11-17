@@ -3,7 +3,8 @@ import { Suspense } from "react";
 import { logoutAction } from "@/actions/auth";
 import { AdminNav, type AdminNavItem } from "@/components/admin/admin-nav";
 import { buttonClass } from "@/components/ui/button";
-import { requireAdmin } from "@/lib/auth/guard";
+import { getAdminSession, requireAdmin } from "@/lib/auth/guard";
+import { db } from "@/lib/db";
 
 const navItems: AdminNavItem[] = [
   { href: "/admin", label: "대시보드" },
@@ -66,10 +67,25 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
 
 function AdminNavSlot() {
   // 현재 경로를 읽는 클라이언트 컴포넌트라 Suspense 로 감싼다.
+  // 배지 숫자는 요청 시점에 DB 에서 세므로, 그동안은 배지 없는 메뉴를 먼저 보여 준다.
   return (
     <Suspense fallback={<div className="h-15" />}>
-      <AdminNav items={navItems} />
+      <Suspense fallback={<AdminNav items={navItems} />}>
+        <AdminNavWithBadges />
+      </Suspense>
     </Suspense>
+  );
+}
+
+async function AdminNavWithBadges() {
+  // 로그인하지 않은 요청에는 숫자를 알려 주지 않는다(로그인 화면으로 보내는 일은 AdminGate 가 맡는다).
+  const session = await getAdminSession();
+  const unread = session ? await db.contactMessage.count({ where: { isRead: false } }) : 0;
+  return (
+    <AdminNav
+      items={navItems}
+      badges={{ "/admin/messages": { count: unread, label: "읽지 않은 문의" } }}
+    />
   );
 }
 

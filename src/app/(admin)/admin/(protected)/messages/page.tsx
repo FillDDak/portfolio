@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { deleteMessage, setMessageRead } from "@/actions/messages";
+import { deleteMessage, markAllMessagesRead, setMessageRead } from "@/actions/messages";
 import { ActionForm, ConfirmDeleteButton, SubmitButton } from "@/components/admin/action-form";
 import { EmptyState, PageHeader } from "@/components/admin/page-header";
 import { buttonClass } from "@/components/ui/button";
@@ -34,6 +34,15 @@ export default async function MessagesPage({ searchParams }: PageProps<"/admin/m
       <PageHeader
         title="받은 문의"
         description={`전체 ${count.toLocaleString("ko-KR")}건 · 읽지 않음 ${unread.toLocaleString("ko-KR")}건. 메일 발송에 실패한 문의도 여기에 남습니다.`}
+        action={
+          unread > 0 ? (
+            <ActionForm action={markAllMessagesRead} showStatus={false}>
+              <SubmitButton variant="secondary" pendingText="처리 중…">
+                전체 읽음 처리
+              </SubmitButton>
+            </ActionForm>
+          ) : null
+        }
       />
 
       {messages.length === 0 ? (
