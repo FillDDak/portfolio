@@ -151,6 +151,19 @@ export async function getPublishedProject(slug: string) {
 
 export type PublicProject = NonNullable<Awaited<ReturnType<typeof getPublishedProject>>>;
 
+/** sitemap 용: 공개된 프로젝트의 주소와 마지막 수정 시각 */
+export async function getPublishedProjectDates() {
+  "use cache";
+  cacheLife("max");
+  cacheTag(CACHE_TAGS.projects);
+  const projects = await db.project.findMany({
+    where: { isPublished: true },
+    orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { id: "asc" }],
+    select: { slug: true, updatedAt: true },
+  });
+  return projects.map(({ slug, updatedAt }) => ({ slug, updatedAt: updatedAt.toISOString() }));
+}
+
 /** 상태 페이지에 표시할 감시 대상 */
 export async function getActiveMonitors() {
   "use cache";

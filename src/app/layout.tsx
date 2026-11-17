@@ -1,9 +1,12 @@
 import type { Metadata, Viewport } from "next";
+import { getSiteUrl, SITE_MARK } from "@/lib/site";
 import "./globals.css";
 
+// 공개 페이지의 제목과 설명은 (public)/layout.tsx 가 프로필 내용으로 채운다. 여기는 공통 기본값이다.
 export const metadata: Metadata = {
-  title: "최현규 | 백엔드 개발자",
-  description: "깊이 고민하고 확실하게 구현하는 개발자 최현규의 포트폴리오",
+  metadataBase: new URL(getSiteUrl()),
+  title: SITE_MARK,
+  formatDetection: { telephone: false, email: false, address: false },
 };
 
 export const viewport: Viewport = {

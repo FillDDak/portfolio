@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
+import { SITE_MARK } from "@/lib/site";
 import { Analytics } from "@/components/public/analytics";
 import { getProfileLinks } from "@/components/public/home-sections";
 import { SiteFooter } from "@/components/public/site-footer";
@@ -10,6 +12,26 @@ import {
   getPublishedProjects,
   getSkillGroups,
 } from "@/lib/data/public";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const profile = await getProfile();
+  const title = `${profile.name} | ${profile.jobTitle}`;
+  const description = profile.tagline || `${profile.jobTitle} ${profile.name}의 포트폴리오`;
+  return {
+    title: { default: title, template: `%s | ${profile.name}` },
+    description,
+    authors: [{ name: profile.name }],
+    openGraph: {
+      type: "website",
+      siteName: SITE_MARK,
+      locale: "ko_KR",
+      title,
+      description,
+      url: "/",
+    },
+    twitter: { card: "summary_large_image" },
+  };
+}
 
 export default async function PublicLayout({ children }: LayoutProps<"/">) {
   const [profile, projects, skillGroups, certificates, monitors] = await Promise.all([

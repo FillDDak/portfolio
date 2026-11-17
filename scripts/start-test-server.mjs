@@ -1,5 +1,5 @@
 // 테스트용 서버 실행: 운영 빌드(standalone)를 테스트 전용 설정으로 띄운다.
-// 사용: npm run build 후 node scripts/start-test-server.mjs [포트=3100]
+// 사용: npm run build 후 node scripts/start-test-server.mjs [포트=3100] [--seed]
 //
 // - 개발용 DB(data/dev.db)를 건드리지 않도록 data/test.db 를 새로 만들어 쓴다.
 // - 메일은 가짜 SMTP 서버(127.0.0.1:2525, scripts/dev-smtp.mjs)로 보낸다.
@@ -9,7 +9,7 @@ import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
 import bcrypt from "bcryptjs";
 
-const port = process.argv[2] ?? "3100";
+const port = process.argv.slice(2).find((arg) => /^\d+$/.test(arg)) ?? "3100";
 const root = process.cwd();
 const standalone = resolve(root, ".next/standalone");
 
@@ -62,6 +62,17 @@ const migrate = spawnSync("npx", ["prisma", "migrate", "deploy"], {
   shell: true,
 });
 if (migrate.status !== 0) process.exit(migrate.status ?? 1);
+
+// --seed 를 붙이면 더미 데이터(프로젝트, 스킬 등)를 넣고 시작한다.
+if (process.argv.includes("--seed")) {
+  const seed = spawnSync("npx", ["tsx", "prisma/seed.dev.ts"], {
+    cwd: root,
+    env: { ...env, NODE_ENV: "development" },
+    stdio: "inherit",
+    shell: true,
+  });
+  if (seed.status !== 0) process.exit(seed.status ?? 1);
+}
 
 const server = spawn(process.execPath, ["server.js"], { cwd: standalone, env, stdio: "inherit" });
 const stop = () => server.kill();

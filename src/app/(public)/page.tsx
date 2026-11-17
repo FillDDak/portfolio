@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { buildPersonJsonLd, getSiteUrl, serializeJsonLd } from "@/lib/site";
 import { ContactForm } from "@/components/public/contact-form";
 import { Hero } from "@/components/public/hero";
 import {
@@ -15,6 +17,8 @@ import {
   getSkillGroups,
 } from "@/lib/data/public";
 
+export const metadata: Metadata = { alternates: { canonical: "/" } };
+
 export default async function HomePage() {
   const [profile, projects, skillGroups, certificates] = await Promise.all([
     getProfile(),
@@ -29,6 +33,12 @@ export default async function HomePage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(buildPersonJsonLd(profile, getSiteUrl())),
+        }}
+      />
       <Hero profile={profile} />
       {projects.length > 0 ? <ProjectsSection index={++index} projects={projects} /> : null}
       {skillGroups.length > 0 ? <SkillsSection index={++index} groups={skillGroups} /> : null}

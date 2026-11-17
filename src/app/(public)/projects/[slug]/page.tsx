@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, ResolvingMetadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -7,24 +7,35 @@ import { Markdown } from "@/components/markdown";
 import { buttonClass } from "@/components/ui/button";
 import { getPublishedProject } from "@/lib/data/public";
 import { formatPeriod } from "@/lib/format";
+import { SITE_MARK } from "@/lib/site";
 
 type Props = PageProps<"/projects/[slug]">;
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(
+  { params }: Props,
+  parent: ResolvingMetadata,
+): Promise<Metadata> {
   const { slug } = await params;
   const project = await getPublishedProject(slug);
   if (!project) return { title: "프로젝트를 찾을 수 없습니다" };
+  // 대표 이미지가 없으면 사이트 공통 미리보기 이미지를 그대로 쓴다.
+  const images = project.coverImage
+    ? [`/uploads/${project.coverImage}`]
+    : ((await parent).openGraph?.images ?? []);
   return {
     title: project.title,
     description: project.summary,
     alternates: { canonical: `/projects/${project.slug}` },
     openGraph: {
       type: "article",
+      siteName: SITE_MARK,
+      locale: "ko_KR",
       title: project.title,
       description: project.summary,
       url: `/projects/${project.slug}`,
-      ...(project.coverImage ? { images: [`/uploads/${project.coverImage}`] } : {}),
+      images,
     },
+    ...(project.coverImage ? { twitter: { card: "summary_large_image", images } } : {}),
   };
 }
 
