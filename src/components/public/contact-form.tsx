@@ -226,6 +226,7 @@ export function ContactForm({
   return (
     <form
       onSubmit={handleSubmit}
+      data-track-input="contact"
       noValidate
       aria-busy={sending}
       className="overflow-hidden rounded-xl border border-line bg-surface focus-within:border-line-strong"

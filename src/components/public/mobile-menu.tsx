@@ -67,6 +67,7 @@ export function MobileMenu({ items, links }: { items: NavItem[]; links: ProfileL
                   <li key={link.key}>
                     <a
                       href={link.url}
+                      data-track={`link:profile:${link.key}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={close}

@@ -24,6 +24,7 @@ export function SiteFooter({
                   <li key={link.key}>
                     <a
                       href={link.url}
+                      data-track={`link:profile:${link.key}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`${link.label} (새 탭에서 열림)`}

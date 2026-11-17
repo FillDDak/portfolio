@@ -62,9 +62,9 @@ async function ProjectContent({ params }: Pick<Props, "params">) {
   if (!project) notFound();
 
   const links = [
-    { label: "데모", url: project.demoUrl, Icon: ArrowUpRightIcon },
-    { label: "GitHub", url: project.githubUrl, Icon: GitHubIcon },
-    { label: "API 문서", url: project.docsUrl, Icon: NoteIcon },
+    { key: "demo", label: "데모", url: project.demoUrl, Icon: ArrowUpRightIcon },
+    { key: "github", label: "GitHub", url: project.githubUrl, Icon: GitHubIcon },
+    { key: "docs", label: "API 문서", url: project.docsUrl, Icon: NoteIcon },
   ].filter((link) => link.url);
 
   return (
@@ -112,10 +112,11 @@ async function ProjectContent({ params }: Pick<Props, "params">) {
 
         {links.length > 0 ? (
           <div className="mt-5 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap">
-            {links.map(({ label, url, Icon }, index) => (
+            {links.map(({ key, label, url, Icon }, index) => (
               <a
                 key={label}
                 href={url}
+                data-track={`link:project:${project.id}:${key}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={buttonClass(

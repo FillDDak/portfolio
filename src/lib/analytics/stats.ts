@@ -1,5 +1,11 @@
 import "server-only";
 import { db } from "@/lib/db";
+import {
+  PROFILE_LINK_KEYS,
+  PROJECT_LINK_KEYS,
+  TRACKED_SECTIONS,
+  type TrackedSection,
+} from "./classify";
 import { addDays, kstDate, kstDayStart } from "./visitor";
 
 /** 관리자 대시보드용 조회 함수. 캐시하지 않고 항상 최신 값을 읽는다. */
@@ -95,6 +101,72 @@ export async function getSiteTotals(now = new Date()) {
     sum(),
   ]);
   return { today: todayViews, last7, last30, total };
+}
+
+/* ── 콘텐츠 반응 ─────────────────────────────────────────── */
+
+export type ContentStats = {
+  days: number;
+  /** 홈 방문(탭 세션 기준) */
+  home: number;
+  /** 섹션별 도달 수. 화면 순서대로 */
+  sections: { id: TrackedSection; count: number }[];
+  contact: { start: number; sent: number };
+  pdf: { view: number; download: number };
+  profileLinks: { key: (typeof PROFILE_LINK_KEYS)[number]; count: number }[];
+  /** 공개 중인 프로젝트. 홈 노출 순서대로 */
+  projects: {
+    id: number;
+    title: string;
+    cardClicks: number;
+    detailViews: number;
+    links: Record<(typeof PROJECT_LINK_KEYS)[number], number>;
+  }[];
+};
+
+/** 최근 days 일(오늘 포함)의 콘텐츠 반응 합계 */
+export async function getContentStats(days = 30, now = new Date()): Promise<ContentStats> {
+  const today = kstDate(now);
+  const from = addDays(today, -(days - 1));
+
+  const [events, detail, projects] = await Promise.all([
+    db.eventStat.groupBy({
+      by: ["event", "target"],
+      where: { date: { gte: from, lte: today } },
+      _sum: { count: true },
+    }),
+    db.dailyStat.groupBy({
+      by: ["projectId"],
+      where: { projectId: { not: null }, date: { gte: from, lte: today } },
+      _sum: { views: true },
+    }),
+    db.project.findMany({
+      where: { isPublished: true },
+      orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { id: "asc" }],
+      select: { id: true, title: true },
+    }),
+  ]);
+
+  const count = (event: string, target = "") =>
+    events.find((row) => row.event === event && row.target === target)?._sum.count ?? 0;
+  const detailViews = new Map(detail.map((row) => [row.projectId, row._sum.views ?? 0]));
+
+  return {
+    days,
+    home: count("home"),
+    sections: TRACKED_SECTIONS.map((id) => ({ id, count: count("section", id) })),
+    contact: { start: count("contact", "start"), sent: count("contact", "sent") },
+    pdf: { view: count("pdf", "view"), download: count("pdf", "download") },
+    profileLinks: PROFILE_LINK_KEYS.map((key) => ({ key, count: count("link", `profile:${key}`) })),
+    projects: projects.map((project) => ({
+      ...project,
+      cardClicks: count("card", String(project.id)),
+      detailViews: detailViews.get(project.id) ?? 0,
+      links: Object.fromEntries(
+        PROJECT_LINK_KEYS.map((key) => [key, count("link", `project:${project.id}:${key}`)]),
+      ) as Record<(typeof PROJECT_LINK_KEYS)[number], number>,
+    })),
+  };
 }
 
 export const VIEW_LOG_PAGE_SIZE = 30;

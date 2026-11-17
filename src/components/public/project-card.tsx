@@ -25,6 +25,7 @@ export function ProjectCard({ project }: { project: PublicProjectCard }) {
           <h3 className={`font-bold tracking-tight ${featured ? "text-xl md:text-2xl" : "text-xl"}`}>
             <Link
               href={`/projects/${project.slug}`}
+              data-track={`card:${project.id}`}
               className="after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-accent-ink"
             >
               {project.title}

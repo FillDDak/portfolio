@@ -1,4 +1,5 @@
 import { connection } from "next/server";
+import { recordContentEvent } from "@/lib/analytics/record";
 import { db } from "@/lib/db";
 import { getEnv } from "@/lib/env";
 import { describeMailError, sendContactMail } from "@/lib/mail/contact-mail";
@@ -130,6 +131,13 @@ export async function POST(request: Request) {
         body: input.body,
       },
     }));
+
+  // 콘텐츠 반응 통계: 새로 저장된 문의만 1건으로 센다(같은 내용 재전송은 제외). 실패해도 문의 처리는 계속한다.
+  if (!duplicate) {
+    await recordContentEvent({ event: "contact", target: "sent" }).catch((error) =>
+      console.error("[contact] 문의 전송 집계 실패", error),
+    );
+  }
 
   // 5) SMTP 발송
   try {

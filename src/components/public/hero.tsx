@@ -73,6 +73,7 @@ export function Hero({ profile }: { profile: PublicProfile }) {
                 <li key={link.key}>
                   <a
                     href={link.url}
+                    data-track={`link:profile:${link.key}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="group -mx-1 inline-flex min-h-11 items-center gap-2 px-1 text-[0.9375rem] font-semibold text-muted transition-colors hover:text-foreground"

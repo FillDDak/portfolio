@@ -1,6 +1,6 @@
-import { isBot } from "@/lib/analytics/classify";
+import { isBot, parseContentEvent } from "@/lib/analytics/classify";
 import { getRealtimeTracker } from "@/lib/analytics/realtime";
-import { recordPageView } from "@/lib/analytics/record";
+import { recordContentEvent, recordPageView } from "@/lib/analytics/record";
 import { readSessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getEnv } from "@/lib/env";
 import { getSharedRateLimiter } from "@/lib/rate-limit";
@@ -21,6 +21,7 @@ function readCookie(request: Request, name: string): string | undefined {
  * 공개 페이지가 보내는 방문 신호.
  *   { type: "view", path, referrer, utmSource }  조회 기록
  *   { type: "beat", sessionId }                  실시간 접속자용 하트비트(25초마다)
+ *   { type: "event", event, target }             콘텐츠 반응(섹션 도달, 카드·링크 클릭 등) 횟수
  *
  * 봇과 로그인한 관리자의 방문은 집계하지 않는다. 결과와 상관없이 항상 204 로 응답해서
  * 집계 여부를 밖에서 알 수 없게 한다.
@@ -61,6 +62,11 @@ export async function POST(request: Request) {
         ip,
         userAgent,
       });
+    }
+
+    if (body.type === "event") {
+      const event = parseContentEvent(body.event, body.target);
+      if (event) await recordContentEvent(event);
     }
     return noContent();
   } catch (error) {

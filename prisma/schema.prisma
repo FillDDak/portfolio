@@ -165,3 +165,18 @@ model DailyStat {
   @@unique([date, path])
   @@index([projectId, date])
 }
+
+/// 콘텐츠 반응 집계(섹션 도달, 카드·링크 클릭, PDF 열람, 문의 작성). 날짜·항목별 횟수만 남기고 방문자 정보는 저장하지 않는다.
+model EventStat {
+  id     Int    @id @default(autoincrement())
+  /// Asia/Seoul 기준 YYYY-MM-DD
+  date   String
+  /// home | section | card | link | pdf | contact
+  event  String
+  /// 예: section → "projects", card → 프로젝트 id, link → "profile:github" / "project:3:docs"
+  target String @default("")
+  count  Int    @default(0)
+
+  @@unique([date, event, target])
+  @@index([event, date])
+}

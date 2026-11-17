@@ -60,6 +60,61 @@ export function parseTrackedPath(path: unknown): TrackedPage | null {
   return null;
 }
 
+/* ── 콘텐츠 반응 이벤트 ─────────────────────────────────────── */
+
+/** 홈에서 도달 여부를 세는 섹션. 화면 순서와 같다. */
+export const TRACKED_SECTIONS = ["projects", "skills", "certificates", "contact"] as const;
+export type TrackedSection = (typeof TRACKED_SECTIONS)[number];
+
+export const PROFILE_LINK_KEYS = ["github", "velog", "notion"] as const;
+export const PROJECT_LINK_KEYS = ["demo", "github", "docs"] as const;
+
+export type ContentEvent = {
+  event: "home" | "section" | "card" | "link" | "contact";
+  target: string;
+  /** 프로젝트에 딸린 이벤트일 때, 기록 전에 공개 중인 프로젝트인지 확인할 id */
+  projectId?: number;
+};
+
+const PROJECT_ID = /^[1-9]\d{0,8}$/;
+
+/**
+ * 브라우저가 보낸 이벤트를 검사한다. 정해 둔 형식이 아니면 null.
+ *   home                          홈 방문(탭 세션당 1번)
+ *   section  projects|skills|certificates|contact
+ *   card     <프로젝트 id>         홈의 프로젝트 카드 클릭
+ *   link     profile:<github|velog|notion> | project:<id>:<demo|github|docs>
+ *   contact  start                문의 폼 작성 시작
+ * PDF 열람과 문의 전송은 서버에서 직접 기록하므로 여기서는 받지 않는다.
+ */
+export function parseContentEvent(event: unknown, target: unknown): ContentEvent | null {
+  if (typeof event !== "string" || typeof target !== "string" || target.length > 60) return null;
+
+  switch (event) {
+    case "home":
+      return target === "" ? { event, target } : null;
+    case "section":
+      return (TRACKED_SECTIONS as readonly string[]).includes(target) ? { event, target } : null;
+    case "card":
+      return PROJECT_ID.test(target) ? { event, target, projectId: Number(target) } : null;
+    case "link": {
+      const [scope, a, b, ...rest] = target.split(":");
+      if (rest.length > 0) return null;
+      if (scope === "profile" && b === undefined && (PROFILE_LINK_KEYS as readonly string[]).includes(a ?? "")) {
+        return { event, target };
+      }
+      if (scope === "project" && PROJECT_ID.test(a ?? "") && (PROJECT_LINK_KEYS as readonly string[]).includes(b ?? "")) {
+        return { event, target, projectId: Number(a) };
+      }
+      return null;
+    }
+    case "contact":
+      return target === "start" ? { event, target } : null;
+    default:
+      return null;
+  }
+}
+
 /** 같은 방문자가 같은 페이지를 다시 봤을 때 조회수를 올릴지: 마지막 기록에서 30분이 지나야 올린다. */
 export const DEDUPE_WINDOW_MS = 30 * 60 * 1000;
 

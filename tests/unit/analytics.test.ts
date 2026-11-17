@@ -4,6 +4,7 @@ import {
   DEDUPE_WINDOW_MS,
   deviceType,
   isBot,
+  parseContentEvent,
   parseTrackedPath,
   referrerDomain,
   shouldCountView,
@@ -219,6 +220,48 @@ describe("집계 대상 경로", () => {
   it("관리자 화면과 알 수 없는 경로는 무시한다", () => {
     for (const path of ["/admin", "/admin/projects", "/api/track", "/projects/", "/projects/A_B", "/x", "", 123, null]) {
       expect(parseTrackedPath(path), String(path)).toBeNull();
+    }
+  });
+});
+
+describe("parseContentEvent (콘텐츠 반응 이벤트 검사)", () => {
+  it("정해 둔 형식만 받는다", () => {
+    expect(parseContentEvent("home", "")).toEqual({ event: "home", target: "" });
+    expect(parseContentEvent("section", "projects")).toEqual({ event: "section", target: "projects" });
+    expect(parseContentEvent("section", "contact")).toEqual({ event: "section", target: "contact" });
+    expect(parseContentEvent("card", "12")).toEqual({ event: "card", target: "12", projectId: 12 });
+    expect(parseContentEvent("link", "profile:github")).toEqual({ event: "link", target: "profile:github" });
+    expect(parseContentEvent("link", "project:3:docs")).toEqual({
+      event: "link",
+      target: "project:3:docs",
+      projectId: 3,
+    });
+    expect(parseContentEvent("contact", "start")).toEqual({ event: "contact", target: "start" });
+  });
+
+  it("모르는 이벤트, 이상한 대상, 서버에서만 기록하는 이벤트는 버린다", () => {
+    const rejected: [unknown, unknown][] = [
+      ["home", "x"],
+      ["section", "hero"],
+      ["section", ""],
+      ["card", "0"],
+      ["card", "-1"],
+      ["card", "1.5"],
+      ["card", "abc"],
+      ["link", "profile:twitter"],
+      ["link", "profile:github:extra"],
+      ["link", "project:abc:github"],
+      ["link", "project:3:homepage"],
+      ["link", "https://evil.example"],
+      ["contact", "sent"], // 문의 전송은 서버가 직접 센다
+      ["pdf", "view"], // PDF 열람도 서버가 직접 센다
+      ["unknown", ""],
+      [123, ""],
+      ["section", null],
+      ["section", "x".repeat(61)],
+    ];
+    for (const [event, target] of rejected) {
+      expect(parseContentEvent(event, target), `${String(event)} / ${String(target)}`).toBeNull();
     }
   });
 });

@@ -89,6 +89,32 @@ export async function recordPageView(input: {
 }
 
 /**
+ * 콘텐츠 반응 1건을 날짜·항목별 횟수에 더한다. 방문자 정보는 남기지 않는다.
+ * 프로젝트에 딸린 이벤트는 공개 중인 프로젝트일 때만 기록한다(임의의 id 로 행이 쌓이는 것을 막는다).
+ */
+export async function recordContentEvent(input: {
+  event: string;
+  target: string;
+  projectId?: number;
+  now?: Date;
+}): Promise<RecordResult> {
+  if (input.projectId !== undefined) {
+    const project = await db.project.findFirst({
+      where: { id: input.projectId, isPublished: true },
+      select: { id: true },
+    });
+    if (!project) return "ignored";
+  }
+  const date = kstDate(input.now ?? new Date());
+  await db.eventStat.upsert({
+    where: { date_event_target: { date, event: input.event, target: input.target } },
+    create: { date, event: input.event, target: input.target, count: 1 },
+    update: { count: { increment: 1 } },
+  });
+  return "counted";
+}
+
+/**
  * 보관 기간이 지난 상세 로그를 지운다. 일별 집계(DailyStat)는 그대로 둔다.
  * 지운 행 수를 돌려준다.
  */

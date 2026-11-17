@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ContentStatsPanel } from "@/components/admin/content-stats";
 import { DailyChart } from "@/components/admin/daily-chart";
 import { PageHeader, Panel } from "@/components/admin/page-header";
 import { RealtimeCount } from "@/components/admin/realtime-count";
 import { buttonClass } from "@/components/ui/button";
 import { fieldClass } from "@/components/ui/field";
-import { getDailyTrend, getProjectViews, getSiteTotals } from "@/lib/analytics/stats";
+import { getContentStats, getDailyTrend, getProjectViews, getSiteTotals } from "@/lib/analytics/stats";
 import { requireAdmin } from "@/lib/auth/guard";
 import { db } from "@/lib/db";
 
@@ -20,11 +21,12 @@ export default async function AdminDashboardPage({ searchParams }: PageProps<"/a
   const selected = Number(typeof params.project === "string" ? params.project : "");
   const projectId = Number.isInteger(selected) && selected > 0 ? selected : null;
 
-  const [totals, projects, trend, unread] = await Promise.all([
+  const [totals, projects, trend, unread, content] = await Promise.all([
     getSiteTotals(),
     getProjectViews(),
     getDailyTrend({ days: TREND_DAYS, projectId }),
     db.contactMessage.count({ where: { isRead: false } }),
+    getContentStats(TREND_DAYS),
   ]);
   const selectedProject = projects.find((project) => project.id === projectId);
 
@@ -160,6 +162,8 @@ export default async function AdminDashboardPage({ searchParams }: PageProps<"/a
           </Link>
         </p>
       </Panel>
+
+      <ContentStatsPanel stats={content} />
     </div>
   );
 }
