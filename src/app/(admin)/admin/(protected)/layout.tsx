@@ -7,14 +7,16 @@ import { requireAdmin } from "@/lib/auth/guard";
 
 const navItems: AdminNavItem[] = [
   { href: "/admin", label: "대시보드" },
-  { href: "/admin/views", label: "조회 기록" },
-  { href: "/admin/messages", label: "받은 문의" },
+  // 이하 홈 화면에 보이는 순서: 첫 화면(소개·PDF) → 프로젝트 → 스킬 → 자격증 → 문의 → 푸터(서비스 상태)
+  { href: "/admin/profile", label: "자기소개·링크" },
+  { href: "/admin/resume", label: "PDF" },
   { href: "/admin/projects", label: "프로젝트" },
   { href: "/admin/skills", label: "스킬" },
   { href: "/admin/certificates", label: "자격증" },
-  { href: "/admin/profile", label: "자기소개·링크" },
-  { href: "/admin/resume", label: "PDF" },
+  { href: "/admin/messages", label: "받은 문의" },
   { href: "/admin/monitors", label: "상태 감시" },
+  // 홈 화면에 나오지 않는 항목
+  { href: "/admin/views", label: "조회 기록" },
 ];
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
