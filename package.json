@@ -16,7 +16,8 @@
     "seed:dev:clear": "tsx prisma/seed.dev.ts --clear",
     "hash-password": "node scripts/hash-password.mjs",
     "dev:smtp": "node scripts/dev-smtp.mjs",
-    "lighthouse": "node scripts/lighthouse.mjs"
+    "lighthouse": "node scripts/lighthouse.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.1",
