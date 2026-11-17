@@ -52,8 +52,10 @@ export default async function MessagesPage({ searchParams }: PageProps<"/admin/m
           {messages.map((message) => (
             <li
               key={message.id}
-              className={`rounded-xl border bg-surface p-4 md:p-5 ${
-                message.isRead ? "border-line" : "border-accent-ink/50"
+              // 읽은 문의는 파란색 강조를 빼고 배경을 가라앉혀 새 문의와 구분한다.
+              // 글자 대비는 유지하고, '메일 발송 실패' 같은 경고 표시는 그대로 둔다.
+              className={`rounded-xl border p-4 md:p-5 ${
+                message.isRead ? "border-line bg-surface-2/60" : "border-accent-ink/50 bg-surface"
               }`}
             >
               <div className="flex flex-wrap items-center gap-1.5">
@@ -80,7 +82,10 @@ export default async function MessagesPage({ searchParams }: PageProps<"/admin/m
               <p className="mt-0.5 text-[0.9375rem] text-muted">
                 {message.name}
                 {message.organization ? ` · ${message.organization}` : ""} ·{" "}
-                <a href={`mailto:${message.email}`} className="text-accent-ink underline underline-offset-2">
+                <a
+                  href={`mailto:${message.email}`}
+                  className={`underline underline-offset-2 ${message.isRead ? "text-muted" : "text-accent-ink"}`}
+                >
                   {message.email}
                 </a>
               </p>
@@ -97,7 +102,7 @@ export default async function MessagesPage({ searchParams }: PageProps<"/admin/m
                 <div className="flex flex-wrap gap-2">
                   <a
                     href={`mailto:${message.email}?subject=${encodeURIComponent(`Re: ${message.subject}`)}`}
-                    className={buttonClass("primary")}
+                    className={buttonClass(message.isRead ? "secondary" : "primary")}
                   >
                     답장 쓰기
                   </a>
