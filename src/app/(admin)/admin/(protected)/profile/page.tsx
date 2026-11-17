@@ -96,6 +96,27 @@ export default async function ProfilePage() {
                 <FieldError name={name} />
               </div>
             ))}
+            <div>
+              <label htmlFor="contactEmail" className={labelClass}>
+                공개 이메일
+              </label>
+              <input
+                id="contactEmail"
+                name="contactEmail"
+                type="email"
+                inputMode="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                defaultValue={profile.contactEmail}
+                maxLength={254}
+                placeholder="me@example.com"
+                className={fieldClass}
+              />
+              <p className={helpClass}>
+                문의 섹션에 복사 버튼과 함께 보입니다. 누구나 볼 수 있으니 공개해도 되는 주소만 적어 주세요.
+              </p>
+              <FieldError name="contactEmail" />
+            </div>
           </div>
         </Panel>
 

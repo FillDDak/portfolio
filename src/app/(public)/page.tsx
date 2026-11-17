@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { buildPersonJsonLd, getSiteUrl, serializeJsonLd } from "@/lib/site";
+import { ContactEmail } from "@/components/public/contact-email";
 import { ContactForm } from "@/components/public/contact-form";
 import { Hero } from "@/components/public/hero";
 import {
@@ -50,6 +51,11 @@ export default async function HomePage() {
       >
         <div className="max-w-3xl">
           <ContactForm recipientName={profile.name} />
+          {profile.contactEmail ? (
+            <div className="mt-4">
+              <ContactEmail email={profile.contactEmail} />
+            </div>
+          ) : null}
         </div>
       </Section>
     </>

@@ -30,6 +30,7 @@ export async function getProfile() {
     githubUrl: profile.githubUrl,
     velogUrl: profile.velogUrl,
     notionUrl: profile.notionUrl,
+    contactEmail: profile.contactEmail,
     hasResume: Boolean(profile.resumeFile),
     resumeUpdatedAt: profile.resumeUpdatedAt?.toISOString() ?? null,
   };

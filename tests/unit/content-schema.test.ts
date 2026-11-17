@@ -80,6 +80,14 @@ describe("그 밖의 스키마", () => {
     expect(profileSchema.safeParse({ ...base, notionUrl: "javascript:alert(1)" }).success).toBe(false);
   });
 
+  it("profileSchema: 공개 이메일은 비우거나 메일 주소 형식만", () => {
+    const base = { name: "최현규", jobTitle: "백엔드 개발자", tagline: "소개" };
+    expect(profileSchema.parse(base).contactEmail).toBe("");
+    expect(profileSchema.parse({ ...base, contactEmail: " me@example.com " }).contactEmail).toBe("me@example.com");
+    expect(profileSchema.safeParse({ ...base, contactEmail: "not-an-email" }).success).toBe(false);
+    expect(profileSchema.safeParse({ ...base, contactEmail: "a@b.c\"><script>" }).success).toBe(false);
+  });
+
   it("skillSchema: 숙련도는 두 단계만", () => {
     expect(skillSchema.safeParse({ name: "Java", level: "USED" }).success).toBe(true);
     expect(skillSchema.safeParse({ name: "Java", level: "LEARNED" }).success).toBe(true);

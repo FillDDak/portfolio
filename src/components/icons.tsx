@@ -93,6 +93,19 @@ export const NoteIcon = (props: IconProps) => (
   </Base>
 );
 
+export const CopyIcon = (props: IconProps) => (
+  <Base {...props}>
+    <rect x="9" y="9" width="11" height="11" rx="2" />
+    <path d="M5 15V6a2 2 0 0 1 2-2h8" />
+  </Base>
+);
+
+export const CheckIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="m5 12.5 4.5 4.5L19 7.5" />
+  </Base>
+);
+
 export const CheckCircleIcon = (props: IconProps) => (
   <Base {...props}>
     <circle cx="12" cy="12" r="9" />

@@ -49,6 +49,13 @@ export const profileSchema = z.object({
   githubUrl: optionalUrl("GitHub"),
   velogUrl: optionalUrl("Velog"),
   notionUrl: optionalUrl("Notion"),
+  contactEmail: z
+    .string()
+    .trim()
+    .max(254, "메일 주소가 너무 깁니다.")
+    .refine((value) => value === "" || z.email().safeParse(value).success, "메일 주소 형식이 올바르지 않습니다.")
+    .optional()
+    .default(""),
 });
 
 export type ProfileInput = z.infer<typeof profileSchema>;
