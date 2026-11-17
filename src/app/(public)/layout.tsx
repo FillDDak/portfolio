@@ -48,8 +48,9 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
     projects.length > 0 && { href: "/#projects", label: "프로젝트" },
     skillGroups.length > 0 && { href: "/#skills", label: "스킬" },
     certificates.length > 0 && { href: "/#certificates", label: "자격증" },
-    { href: "/#contact", label: "문의" },
+    // 문의 섹션은 헤더의 '문의하기' 버튼이 맡으므로 메뉴에 따로 넣지 않는다.
   ].filter((item): item is NavItem => Boolean(item));
+  const links = getProfileLinks(profile);
 
   return (
     <>
@@ -59,11 +60,11 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
       >
         본문으로 건너뛰기
       </a>
-      <SiteHeader items={items} links={getProfileLinks(profile)} />
+      <SiteHeader items={items} links={links} />
       <main id="main" className="flex-1">
         {children}
       </main>
-      <SiteFooter name={profile.name} showStatus={monitors.length > 0} />
+      <SiteFooter name={profile.name} links={links} showStatus={monitors.length > 0} />
       {/* 방문 기록과 실시간 접속 신호. 현재 경로를 읽으므로 Suspense 로 감싼다. */}
       <Suspense fallback={null}>
         <Analytics />

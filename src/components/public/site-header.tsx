@@ -2,7 +2,7 @@ import Link from "next/link";
 import { buttonClass } from "@/components/ui/button";
 import { SITE_MARK } from "@/lib/site";
 import { MobileMenu } from "./mobile-menu";
-import { profileLinkIcons, type ProfileLink } from "./profile-links";
+import type { ProfileLink } from "./profile-links";
 import { ThemeToggle } from "./theme-toggle";
 
 /**
@@ -38,28 +38,7 @@ export function SiteHeader({ items, links }: { items: NavItem[]; links: ProfileL
               ))}
             </ul>
           </nav>
-          {/* 스크롤을 내린 뒤에도 외부 프로필로 바로 갈 수 있게 헤더에 아이콘으로 둔다(모바일은 메뉴 시트 안). */}
-          {links.length > 0 ? (
-            <ul aria-label="외부 프로필" className="hidden items-center md:flex">
-              {links.map((link) => {
-                const Icon = profileLinkIcons[link.key];
-                return (
-                  <li key={link.key}>
-                    <a
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`${link.label} (새 탭에서 열림)`}
-                      title={link.label}
-                      className="inline-flex size-11 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
-                    >
-                      <Icon />
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : null}
+          {/* 외부 프로필 링크는 PC 헤더에 두지 않는다(첫 화면과 푸터에 있다). 모바일은 메뉴 시트 안에 둔다. */}
           <ThemeToggle />
           <div className="ml-2 hidden md:block">
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
