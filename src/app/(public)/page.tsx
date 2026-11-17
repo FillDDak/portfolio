@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { buildPersonJsonLd, getSiteUrl, serializeJsonLd } from "@/lib/site";
-import { ContactEmail } from "@/components/public/contact-email";
 import { ContactForm } from "@/components/public/contact-form";
 import { Hero } from "@/components/public/hero";
 import {
@@ -50,12 +49,7 @@ export default async function HomePage() {
         description="채용 제안이나 궁금한 점을 남겨 주세요. 작성하신 내용은 메일로 바로 전달됩니다."
       >
         <div className="max-w-3xl">
-          <ContactForm recipientName={profile.name} />
-          {profile.contactEmail ? (
-            <div className="mt-4">
-              <ContactEmail email={profile.contactEmail} />
-            </div>
-          ) : null}
+          <ContactForm recipientName={profile.name} recipientEmail={profile.contactEmail} />
         </div>
       </Section>
     </>

@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CheckIcon, CopyIcon, MailIcon } from "@/components/icons";
+import { CheckIcon, CopyIcon } from "@/components/icons";
 
-/** 문의 폼 대신 메일을 직접 쓰려는 사람을 위한 주소 표시와 복사 버튼. */
-export function ContactEmail({ email }: { email: string }) {
+/**
+ * 문의 폼의 '받는 사람' 줄에 붙는 메일 주소와 복사 버튼.
+ * 폼 대신 메일을 직접 쓰려는 사람이 주소를 바로 가져갈 수 있게 한다.
+ */
+export function RecipientEmail({ email }: { email: string }) {
   const [copied, setCopied] = useState(false);
   const addressRef = useRef<HTMLAnchorElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -31,30 +34,26 @@ export function ContactEmail({ email }: { email: string }) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <span className="text-[0.9375rem] text-muted">메일로 직접 보내셔도 됩니다.</span>
-      <span className="inline-flex items-center gap-1">
-        <a
-          ref={addressRef}
-          href={`mailto:${email}`}
-          className="-mx-1 inline-flex min-h-11 items-center gap-2 px-1 font-semibold break-all underline-offset-4 hover:underline"
-        >
-          <MailIcon width={18} height={18} className="shrink-0 text-muted" />
-          {email}
-        </a>
-        <button
-          type="button"
-          onClick={copy}
-          aria-label={copied ? "메일 주소 복사됨" : "메일 주소 복사"}
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
-        >
-          {copied ? <CheckIcon width={16} height={16} className="text-success" /> : <CopyIcon width={16} height={16} />}
-          <span aria-hidden="true">{copied ? "복사됨" : "복사"}</span>
-        </button>
-      </span>
+    <span className="inline-flex items-center">
+      <a
+        ref={addressRef}
+        href={`mailto:${email}`}
+        className="text-[0.9375rem] break-all text-muted underline-offset-4 hover:text-foreground hover:underline"
+      >
+        {email}
+      </a>
+      <button
+        type="button"
+        onClick={copy}
+        aria-label={copied ? "메일 주소 복사됨" : "메일 주소 복사"}
+        title="메일 주소 복사"
+        className="ml-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
+      >
+        {copied ? <CheckIcon width={17} height={17} className="text-success" /> : <CopyIcon width={17} height={17} />}
+      </button>
       <span role="status" className="sr-only">
         {copied ? "메일 주소를 복사했습니다." : ""}
       </span>
-    </div>
+    </span>
   );
 }

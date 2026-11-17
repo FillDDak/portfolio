@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { LockIcon, SendIcon } from "@/components/icons";
 import { buttonClass } from "@/components/ui/button";
+import { RecipientEmail } from "./contact-email";
 import type { ContactResponse } from "@/app/api/contact/route";
 import {
   CONTACT_LIMITS,
@@ -45,9 +46,16 @@ const fieldOrder: ContactField[] = ["name", "email", "organization", "subject", 
 
 /**
  * 메일 작성 화면처럼 구성한 문의 폼.
- * 받는 사람은 이름만 고정 표시하고 실제 주소는 서버 환경 변수에만 둔다.
+ * 받는 사람은 이름을 고정 표시하고, 관리자가 공개 이메일을 정해 두었으면 그 주소와 복사 버튼을 함께 보인다.
+ * 폼이 실제로 메일을 보내는 수신 주소는 서버 환경 변수(CONTACT_TO)에만 둔다.
  */
-export function ContactForm({ recipientName }: { recipientName: string }) {
+export function ContactForm({
+  recipientName,
+  recipientEmail,
+}: {
+  recipientName: string;
+  recipientEmail?: string;
+}) {
   const statusRef = useRef<HTMLDivElement>(null);
   const turnstileRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | undefined>(undefined);
@@ -224,13 +232,14 @@ export function ContactForm({ recipientName }: { recipientName: string }) {
     >
       <div className={rowClass}>
         <span className={labelClass}>받는 사람</span>
-        <p className="flex min-h-12 items-center gap-2 font-medium">
+        <div className="flex min-h-12 flex-wrap items-center gap-x-2 py-1 font-medium">
           <span className="inline-flex items-center gap-1.5 rounded-md bg-surface-2 px-2.5 py-1 text-[0.9375rem]">
             {recipientName}
             <LockIcon width={14} height={14} className="text-muted" />
+            <span className="sr-only">(고정, 수정할 수 없음)</span>
           </span>
-          <span className="sr-only">(고정, 수정할 수 없음)</span>
-        </p>
+          {recipientEmail ? <RecipientEmail email={recipientEmail} /> : null}
+        </div>
       </div>
 
       <Row
