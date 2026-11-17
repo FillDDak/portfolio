@@ -4,6 +4,7 @@ import { getProfileLinks } from "@/components/public/home-sections";
 import { SiteFooter } from "@/components/public/site-footer";
 import { SiteHeader, type NavItem } from "@/components/public/site-header";
 import {
+  getActiveMonitors,
   getCertificates,
   getProfile,
   getPublishedProjects,
@@ -11,11 +12,12 @@ import {
 } from "@/lib/data/public";
 
 export default async function PublicLayout({ children }: LayoutProps<"/">) {
-  const [profile, projects, skillGroups, certificates] = await Promise.all([
+  const [profile, projects, skillGroups, certificates, monitors] = await Promise.all([
     getProfile(),
     getPublishedProjects(),
     getSkillGroups(),
     getCertificates(),
+    getActiveMonitors(),
   ]);
 
   // 내용이 있는 섹션만 메뉴에 넣는다.
@@ -39,7 +41,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
       <main id="main" className="flex-1">
         {children}
       </main>
-      <SiteFooter name={profile.name} showStatus={false} />
+      <SiteFooter name={profile.name} showStatus={monitors.length > 0} />
       {/* 방문 기록과 실시간 접속 신호. 현재 경로를 읽으므로 Suspense 로 감싼다. */}
       <Suspense fallback={null}>
         <Analytics />

@@ -100,6 +100,20 @@ export const PenIcon = (props: IconProps) => (
   </Base>
 );
 
+export const CheckCircleIcon = (props: IconProps) => (
+  <Base {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="m8 12.5 2.7 2.7L16 9.5" />
+  </Base>
+);
+
+export const AlertCircleIcon = (props: IconProps) => (
+  <Base {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7.5v5.5M12 16.5v.01" />
+  </Base>
+);
+
 /** GitHub 로고 (단색) */
 export const GitHubIcon = (props: IconProps) => (
   <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false" {...props}>
