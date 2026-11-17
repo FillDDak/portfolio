@@ -53,3 +53,6 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 /blob-report/
+
+# 개인용 메모와 프롬프트 템플릿 (GitHub 에 올리지 않음)
+/private/
