@@ -1,4 +1,4 @@
-import { GitHubIcon, NoteIcon, PenIcon } from "@/components/icons";
+import { GitHubIcon, NotionIcon, VelogIcon } from "@/components/icons";
 import type { PublicProfile } from "@/lib/data/public";
 
 export type ProfileLink = { key: "github" | "velog" | "notion"; label: string; url: string };
@@ -15,6 +15,6 @@ export function getProfileLinks(profile: Pick<PublicProfile, "githubUrl" | "velo
 
 export const profileLinkIcons: Record<ProfileLink["key"], typeof GitHubIcon> = {
   github: GitHubIcon,
-  velog: PenIcon,
-  notion: NoteIcon,
+  velog: VelogIcon,
+  notion: NotionIcon,
 };
