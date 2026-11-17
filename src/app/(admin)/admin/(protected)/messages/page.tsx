@@ -52,10 +52,12 @@ export default async function MessagesPage({ searchParams }: PageProps<"/admin/m
           {messages.map((message) => (
             <li
               key={message.id}
-              // 읽은 문의는 파란색 강조를 빼고 배경을 가라앉혀 새 문의와 구분한다.
-              // 글자 대비는 유지하고, '메일 발송 실패' 같은 경고 표시는 그대로 둔다.
+              // 읽은 문의는 파란색 강조를 빼고 상자를 페이지 쪽으로 가라앉혀 새 문의와 구분한다.
+              // 글자는 조금만 낮추고(배경 대비 약 9:1 이상 유지), '메일 발송 실패' 같은 경고 표시는 그대로 둔다.
               className={`rounded-xl border p-4 md:p-5 ${
-                message.isRead ? "border-line bg-surface-2/60" : "border-accent-ink/50 bg-surface"
+                message.isRead
+                  ? "border-line bg-sunken text-foreground/80"
+                  : "border-accent-ink/60 bg-surface shadow-sm"
               }`}
             >
               <div className="flex flex-wrap items-center gap-1.5">

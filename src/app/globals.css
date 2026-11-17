@@ -47,6 +47,7 @@
   --bg: #f7f8fa;
   --surface: #ffffff;
   --surface-2: #f0f2f6;
+  --sunken: #eef1f5;
   --text: #141821;
   --muted: #566070;
   --line: #e1e5ec;
@@ -66,6 +67,7 @@
   --bg: #0d1017;
   --surface: #141923;
   --surface-2: #1b212d;
+  --sunken: #0d1017;
   --text: #e9ecf2;
   --muted: #9ca6b7;
   --line: #252c3a;
@@ -86,6 +88,7 @@
     --bg: #0d1017;
     --surface: #141923;
     --surface-2: #1b212d;
+    --sunken: #0d1017;
     --text: #e9ecf2;
     --muted: #9ca6b7;
     --line: #252c3a;
@@ -105,6 +108,8 @@
   --color-background: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  /* 읽은 문의처럼 한 단계 가라앉힌 상자. 다크 모드에서는 페이지 배경과 같은 색이다. */
+  --color-sunken: var(--sunken);
   --color-foreground: var(--text);
   --color-muted: var(--muted);
   --color-line: var(--line);
