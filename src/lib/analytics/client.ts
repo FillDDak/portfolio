@@ -18,6 +18,20 @@ export function sendTrack(payload: Record<string, unknown>) {
 }
 
 /**
+ * 탭이 닫히거나 숨겨지는 순간에 보내는 신호. 페이지가 사라지는 중에도 전달되도록 sendBeacon 을 쓴다.
+ * sendBeacon 을 쓸 수 없는 브라우저는 keepalive fetch 로 보낸다.
+ */
+export function sendTrackBeacon(payload: Record<string, unknown>) {
+  try {
+    const body = JSON.stringify(payload);
+    if (typeof navigator.sendBeacon === "function" && navigator.sendBeacon("/api/track", body)) return;
+    sendTrack(payload);
+  } catch {
+    // 통계 전송 실패는 무시한다.
+  }
+}
+
+/**
  * 콘텐츠 반응 이벤트를 탭 세션당 한 번만 보낸다.
  * 같은 사람이 새로고침하거나 같은 링크를 여러 번 눌러도 1로 센다.
  */

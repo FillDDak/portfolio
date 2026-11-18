@@ -2,10 +2,10 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-import { sendTrack, splitTrackAttribute, trackEventOnce } from "@/lib/analytics/client";
+import { sendTrack, sendTrackBeacon, splitTrackAttribute, trackEventOnce } from "@/lib/analytics/client";
 
 // src/lib/analytics/realtime.ts 의 HEARTBEAT_INTERVAL_MS 와 같은 값
-const HEARTBEAT_INTERVAL_MS = 25_000;
+const HEARTBEAT_INTERVAL_MS = 15_000;
 
 // src/lib/analytics/classify.ts 의 TRACKED_SECTIONS 와 같은 값(클라이언트 번들에 서버 코드를 넣지 않으려고 따로 둔다)
 const TRACKED_SECTIONS = ["projects", "skills", "certificates", "contact"];
@@ -93,18 +93,35 @@ export function Analytics() {
     };
   }, []);
 
-  // 25초마다 접속 신호. 탭이 보이지 않는 동안에는 보내지 않는다.
+  // 실시간 접속 신호
+  // - 탭이 보이는 동안 15초마다 "접속 중" 신호를 보낸다.
+  // - 탭을 닫거나 다른 탭·앱으로 가면 바로 "나감" 신호를 보내고, 돌아오면 바로 다시 "접속 중"을 보낸다.
+  // - "나감" 이 전달되지 못해도(강제 종료 등) 서버가 35초 뒤에 스스로 뺀다.
   useEffect(() => {
     const sessionId = getSessionId();
     const beat = () => {
       if (document.visibilityState === "visible") sendTrack({ type: "beat", sessionId });
     };
+    const leave = () => sendTrackBeacon({ type: "leave", sessionId });
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") beat();
+      else leave();
+    };
+    // 뒤로 가기 캐시(bfcache)에서 페이지가 되살아나면 다시 접속 중으로 센다.
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) beat();
+    };
+
     beat();
     const timer = window.setInterval(beat, HEARTBEAT_INTERVAL_MS);
-    document.addEventListener("visibilitychange", beat);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("pagehide", leave);
+    window.addEventListener("pageshow", onPageShow);
     return () => {
       window.clearInterval(timer);
-      document.removeEventListener("visibilitychange", beat);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pagehide", leave);
+      window.removeEventListener("pageshow", onPageShow);
     };
   }, []);
 

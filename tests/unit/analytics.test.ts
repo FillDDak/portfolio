@@ -68,7 +68,7 @@ describe("실시간 접속자 계산 (최근 60초 안에 신호가 있는 세�
     expect(tracker.count()).toBe(1);
   });
 
-  it("60초 동안 신호가 없으면 빠진다", () => {
+  it("35초 동안 신호가 없으면 빠진다(나감 신호가 오지 못한 경우)", () => {
     const { tracker, advance } = setup();
     tracker.beat("session-a");
     advance(ACTIVE_WINDOW_MS);
@@ -77,10 +77,27 @@ describe("실시간 접속자 계산 (최근 60초 안에 신호가 있는 세�
     expect(tracker.count()).toBe(0);
   });
 
-  it("25초마다 신호를 보내는 세션은 한 번 놓쳐도 계속 접속 중으로 본다", () => {
+  it("15초마다 신호를 보내는 세션은 한 번 놓쳐도 계속 접속 중으로 본다", () => {
     const { tracker, advance } = setup();
     tracker.beat("session-a");
     advance(HEARTBEAT_INTERVAL_MS * 2);
+    expect(tracker.count()).toBe(1);
+  });
+
+  it("나감 신호를 보낸 세션은 바로 빠지고, 돌아오면 바로 다시 센다", () => {
+    const { tracker } = setup();
+    tracker.beat("session-a");
+    tracker.beat("session-b");
+    tracker.leave("session-a");
+    expect(tracker.count()).toBe(1);
+    tracker.beat("session-a");
+    expect(tracker.count()).toBe(2);
+  });
+
+  it("모르는 세션의 나감 신호는 무시한다", () => {
+    const { tracker } = setup();
+    tracker.beat("session-a");
+    tracker.leave("unknown");
     expect(tracker.count()).toBe(1);
   });
 

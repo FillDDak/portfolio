@@ -20,7 +20,8 @@ function readCookie(request: Request, name: string): string | undefined {
 /**
  * 공개 페이지가 보내는 방문 신호.
  *   { type: "view", path, referrer, utmSource }  조회 기록
- *   { type: "beat", sessionId }                  실시간 접속자용 하트비트(25초마다)
+ *   { type: "beat", sessionId }                  실시간 접속자용 하트비트(15초마다, 탭이 보일 때)
+ *   { type: "leave", sessionId }                 탭을 닫거나 다른 탭으로 갔을 때. 실시간 접속자에서 바로 뺀다
  *   { type: "event", event, target }             콘텐츠 반응(섹션 도달, 카드·링크 클릭 등) 횟수
  *
  * 봇과 로그인한 관리자의 방문은 집계하지 않는다. 결과와 상관없이 항상 204 로 응답해서
@@ -46,10 +47,12 @@ export async function POST(request: Request) {
     const session = await readSessionToken(readCookie(request, SESSION_COOKIE_NAME));
     if (session) return noContent();
 
-    if (body.type === "beat") {
+    if (body.type === "beat" || body.type === "leave") {
       const sessionId = body.sessionId;
       if (typeof sessionId === "string" && /^[a-z0-9-]{16,40}$/i.test(sessionId)) {
-        getRealtimeTracker().beat(sessionId);
+        const tracker = getRealtimeTracker();
+        if (body.type === "beat") tracker.beat(sessionId);
+        else tracker.leave(sessionId);
       }
       return noContent();
     }

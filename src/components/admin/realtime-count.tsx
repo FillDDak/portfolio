@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 
-const REFRESH_INTERVAL_MS = 10_000;
+// 방문자가 들어오고 나가는 것이 1~2초 안에 보이도록 짧게 둔다. 관리자 한 명만 보는 화면이라 서버 부담은 거의 없다.
+const REFRESH_INTERVAL_MS = 2_000;
 
 type State = { status: "loading" } | { status: "ok"; count: number } | { status: "error" };
 
-/** 실시간 접속자 수. 10초마다 다시 불러온다. */
+/** 실시간 접속자 수. 화면이 보이는 동안 2초마다 다시 불러온다. */
 export function RealtimeCount() {
   const [state, setState] = useState<State>({ status: "loading" });
 
@@ -52,7 +53,7 @@ export function RealtimeCount() {
           <span className="text-lg font-semibold text-danger">불러오지 못했습니다</span>
         )}
       </p>
-      <p className="mt-1 text-sm text-muted">최근 60초 기준 · 10초마다 갱신</p>
+      <p className="mt-1 text-sm text-muted">지금 공개 페이지를 보고 있는 탭 · 2초마다 갱신</p>
     </div>
   );
 }
