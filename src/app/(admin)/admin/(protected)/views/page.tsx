@@ -9,6 +9,9 @@ import { db } from "@/lib/db";
 import { getEnv } from "@/lib/env";
 import { formatDateTime } from "@/lib/format";
 
+// 관리자 화면은 로딩 표시 없이, 데이터를 다 받은 뒤 완성된 화면으로 바로 바꾼다(아래 layout.tsx 설명 참고).
+export const instant = false;
+
 export const metadata: Metadata = { title: "조회 기록" };
 
 const deviceLabel: Record<string, string> = { desktop: "PC", mobile: "모바일", tablet: "태블릿" };

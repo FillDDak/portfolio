@@ -19,6 +19,9 @@ import { fieldClass, labelClass } from "@/components/ui/field";
 import { requireAdmin } from "@/lib/auth/guard";
 import { db } from "@/lib/db";
 
+// 관리자 화면은 로딩 표시 없이, 데이터를 다 받은 뒤 완성된 화면으로 바로 바꾼다(아래 layout.tsx 설명 참고).
+export const instant = false;
+
 export const metadata: Metadata = { title: "스킬" };
 
 function LevelSelect({ id, defaultValue = "USED" }: { id: string; defaultValue?: string }) {

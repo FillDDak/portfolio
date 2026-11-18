@@ -6,6 +6,12 @@ import { buttonClass } from "@/components/ui/button";
 import { getAdminSession, requireAdmin } from "@/lib/auth/guard";
 import { db } from "@/lib/db";
 
+// 관리자 화면은 로딩 표시 없이, 데이터를 다 받은 뒤 완성된 화면으로 바로 바꾼다.
+// 로딩 표시를 먼저 띄우면 React 가 깜빡임을 막으려고 내용을 최소 약 0.3초 늦게 보여 주는데,
+// 관리자 화면의 서버 응답은 그보다 훨씬 빨라서 오히려 느리게 느껴진다.
+// instant = false 는 "이 화면은 데이터를 기다렸다가 보여 줘도 된다"는 표시다(페이지마다 같은 설정을 둔다).
+export const instant = false;
+
 const navItems: AdminNavItem[] = [
   { href: "/admin", label: "대시보드" },
   { href: "/admin/views", label: "조회 기록" },
@@ -55,10 +61,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           </div>
         </aside>
         <main className="min-w-0 flex-1 px-4 py-6 lg:px-8 lg:py-8">
-          {/* 세션 확인과 데이터 조회는 요청 시점에 일어나므로 Suspense 안에서 처리한다. */}
-          <Suspense fallback={<p className="text-muted">불러오는 중…</p>}>
-            <AdminGate>{children}</AdminGate>
-          </Suspense>
+          <AdminGate>{children}</AdminGate>
         </main>
       </div>
     </div>

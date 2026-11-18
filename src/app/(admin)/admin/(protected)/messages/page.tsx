@@ -8,6 +8,9 @@ import { requireAdmin } from "@/lib/auth/guard";
 import { db } from "@/lib/db";
 import { formatDateTime } from "@/lib/format";
 
+// 관리자 화면은 로딩 표시 없이, 데이터를 다 받은 뒤 완성된 화면으로 바로 바꾼다(아래 layout.tsx 설명 참고).
+export const instant = false;
+
 export const metadata: Metadata = { title: "받은 문의" };
 
 const PAGE_SIZE = 20;
