@@ -145,6 +145,14 @@ rm ~/gh-deploy ~/gh-deploy.pub               # GitHub 에 넣은 뒤 서버에�
 
 배포 키는 서버에서 배포 스크립트만 실행할 수 있다(셸 접속, 포트 포워딩 불가).
 
+자동 배포는 앱만 바꾼다. `deploy/` 의 서버 설정(Nginx, systemd, 배포·백업 스크립트)을 고쳤다면 폴더를 다시 올리고 직접 적용한다.
+```bash
+scp -i <SSH 키> -r deploy ubuntu@<서버 IP>:~/                       # 내 PC
+sudo install -m 0644 ~/deploy/nginx/portfolio.conf /etc/nginx/sites-available/portfolio \
+  && sudo nginx -t && sudo systemctl reload nginx                   # Nginx 설정
+sudo bash ~/deploy/server-setup.sh                                  # 그 밖의 설정(다시 실행해도 안전)
+```
+
 **수동으로 이전 버전으로 돌리기**
 ```bash
 ls /opt/portfolio/releases
