@@ -16,6 +16,10 @@ const nextConfig: NextConfig = {
       "./node_modules/pretendard/dist/public/static/Pretendard-Medium.otf",
     ],
   },
+  // 예전에 있던 PDF 안내 페이지(/resume)로 들어와도 PDF 파일을 바로 연다.
+  async redirects() {
+    return [{ source: "/resume", destination: "/resume/file", permanent: false }];
+  },
   async headers() {
     return [
       {

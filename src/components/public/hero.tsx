@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { ArrowUpRightIcon, FileIcon, MailIcon } from "@/components/icons";
 import { buttonClass } from "@/components/ui/button";
 import type { PublicProfile } from "@/lib/data/public";
@@ -58,10 +57,17 @@ export function Hero({ profile }: { profile: PublicProfile }) {
             문의하기
           </a>
           {profile.hasResume ? (
-            <Link href="/resume" className={buttonClass("secondary", "sm:min-w-36")}>
+            // 사이트 안에 띄우지 않고, 새 탭에서 브라우저 PDF 뷰어로 바로 연다.
+            <a
+              href="/resume/file"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonClass("secondary", "sm:min-w-36")}
+            >
               <FileIcon />
               PDF 보기
-            </Link>
+              <span className="sr-only">(새 탭에서 열림)</span>
+            </a>
           ) : null}
         </div>
 

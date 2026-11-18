@@ -21,7 +21,7 @@ export default async function ResumeAdminPage() {
     <div className="max-w-3xl">
       <PageHeader
         title="PDF 포트폴리오"
-        description="올려 두면 홈 화면에 PDF 보기 버튼이 생기고, /resume 에서 보기와 다운로드를 제공합니다."
+        description="올려 두면 홈 화면에 PDF 보기 버튼이 생깁니다. 누르면 새 탭에서 브라우저 PDF 뷰어로 열립니다."
       />
       <Panel>
         <ResumeManager

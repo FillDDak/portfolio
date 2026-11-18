@@ -68,7 +68,7 @@ export function ResumeManager({ hasFile, updatedAt }: { hasFile: boolean; update
         </p>
       ) : (
         <p className="text-muted">
-          등록한 파일이 없습니다. 공개 페이지의 PDF 보기 버튼과 /resume 페이지는 숨겨져 있습니다.
+          등록한 파일이 없습니다. 공개 페이지의 PDF 보기 버튼은 숨겨져 있습니다.
         </p>
       )}
 
