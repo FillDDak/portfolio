@@ -1,0 +1,9 @@
+# 매일 백업. 설치 위치: /etc/systemd/system/portfolio-backup.service (portfolio-backup.timer 가 실행)
+[Unit]
+Description=Portfolio daily backup (SQLite + uploads)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/portfolio-backup daily
+Nice=10
+IOSchedulingClass=idle

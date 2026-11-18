@@ -1,0 +1,11 @@
+# 설치 위치: /etc/systemd/system/portfolio-backup.timer
+# 서버 시간대(Asia/Seoul) 기준 매일 04:30. 꺼져 있어서 놓친 백업은 켜진 뒤 바로 실행한다.
+[Unit]
+Description=Run portfolio backup daily
+
+[Timer]
+OnCalendar=*-*-* 04:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

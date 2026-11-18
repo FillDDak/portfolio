@@ -1,0 +1,128 @@
+# 검사(lint, 타입, 단위 테스트, E2E, 빌드)가 모두 통과하면 main 브랜치를 운영 서버에 배포한다.
+#
+# 배포에 필요한 설정 (GitHub 저장소 → Settings → Secrets and variables → Actions)
+#   Variables: DEPLOY_ENABLED = true   (이 값이 없으면 검사만 하고 배포하지 않는다)
+#   Secrets:   DEPLOY_HOST         서버 공인 IP
+#              DEPLOY_SSH_KEY      배포 전용 개인키 (서버 deploy 사용자에 등록한 공개키의 짝)
+#              DEPLOY_KNOWN_HOSTS  서버 호스트 키 한 줄 (예: 158.180.80.77 ssh-ed25519 AAAA...)
+name: CI · Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  ci:
+    name: 검사와 빌드
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: 타입 검사
+        run: npm run typecheck
+
+      - name: 단위 테스트
+        run: npm test
+
+      # 빌드는 빈 DB(마이그레이션만 적용)로 한다. 운영 서버는 시작할 때 캐시를 비우고 운영 DB 내용으로 다시 만든다.
+      # 아래 비밀값은 빌드에만 쓰는 임시 값이고, 운영 서버의 값은 서버의 /etc/portfolio/portfolio.env 에 있다.
+      - name: 빌드
+        env:
+          DATABASE_URL: file:./data/build.db
+          UPLOAD_DIR: ./data/uploads
+          SITE_URL: https://fillddak.kr
+          SESSION_SECRET: build-only-session-secret-not-used-at-runtime
+          ANALYTICS_SECRET: build-only-analytics-secret-not-used-at-runtime
+        run: |
+          npx prisma migrate deploy
+          npm run build
+
+      # E2E 테스트 서버가 standalone 폴더에 테스트 데이터를 남길 수 있어서, 테스트 전에 묶어 둔다.
+      - name: 배포 묶음 만들기
+        run: bash deploy/package-release.sh portfolio-release.tar.gz
+
+      - name: E2E 브라우저 설치
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E 테스트
+        run: npm run test:e2e
+
+      - name: E2E 실패 기록 올리기
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+      - name: 배포 묶음 올리기
+        uses: actions/upload-artifact@v7
+        with:
+          name: portfolio-release
+          path: portfolio-release.tar.gz
+          retention-days: 7
+
+  deploy:
+    name: 운영 서버 배포
+    needs: ci
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: production
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: portfolio-release
+
+      - name: SSH 준비
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      # 서버의 deploy 사용자는 이 키로 배포 스크립트만 실행할 수 있다. 묶음은 표준 입력으로 보낸다.
+      # 스크립트가 마이그레이션, 재시작, 헬스체크를 하고 실패하면 이전 버전으로 되돌린 뒤 실패로 끝난다.
+      - name: 배포
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            -o ServerAliveInterval=15 "deploy@${DEPLOY_HOST}" < portfolio-release.tar.gz
+
+      - name: 공개 주소 확인
+        run: curl -fsS -o /dev/null -w "https://fillddak.kr → HTTP %{http_code}, %{time_total}s\n" https://fillddak.kr/
+
+      - name: SSH 키 지우기
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
