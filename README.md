@@ -2,7 +2,7 @@
 
 [![CI · Deploy](https://github.com/FillDDak/portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/FillDDak/portfolio/actions/workflows/ci.yml)
 
-**🔗 사이트: [https://fillddak.kr](https://fillddak.kr)**
+**🔗 [사이트 바로가기](https://fillddak.kr)**
 
 백엔드 개발자 포트폴리오 사이트와 관리자 화면입니다. 관리자 화면에서 프로젝트·스킬·자격증·PDF 를 고치면 공개 페이지에 바로 반영되고, 문의 메일, 방문 통계, 서비스 상태 페이지를 함께 제공합니다. 1GB 메모리 서버 한 대에서 운영하는 것을 전제로 만들었습니다.
 
