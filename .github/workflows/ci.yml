@@ -107,9 +107,16 @@ jobs:
           DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
         run: |
           install -d -m 700 ~/.ssh
-          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          # Windows 에서 복사해 넣으면 줄 끝 \r 이나 줄 앞 공백이 섞여 키를 읽지 못하므로 정리한다.
+          printf '%s\n' "$DEPLOY_SSH_KEY" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" | tr -d '\r' > ~/.ssh/known_hosts
+          # 키 내용은 출력하지 않고 형식만 확인한다.
+          if ! ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null; then
+            echo "::error::DEPLOY_SSH_KEY 를 읽지 못했습니다. 첫 줄(BEGIN)부터 끝 줄(END)까지 빠짐없이 넣었는지 확인하세요."
+            echo "줄 수: $(wc -l < ~/.ssh/deploy_key), 첫 줄: $(head -n 1 ~/.ssh/deploy_key), 끝 줄: $(tail -n 1 ~/.ssh/deploy_key)"
+            exit 1
+          fi
 
       # 서버의 deploy 사용자는 이 키로 배포 스크립트만 실행할 수 있다. 묶음은 표준 입력으로 보낸다.
       # 스크립트가 마이그레이션, 재시작, 헬스체크를 하고 실패하면 이전 버전으로 되돌린 뒤 실패로 끝난다.
