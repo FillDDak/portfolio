@@ -33,6 +33,7 @@ export async function getProfile() {
     contactEmail: profile.contactEmail,
     hasResume: Boolean(profile.resumeFile),
     resumeUpdatedAt: profile.resumeUpdatedAt?.toISOString() ?? null,
+    photoUrl: profile.photoFile ? `/uploads/${profile.photoFile}` : null,
   };
 }
 

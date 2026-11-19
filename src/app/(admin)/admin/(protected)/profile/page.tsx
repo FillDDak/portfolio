@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { saveProfile } from "@/actions/content";
 import { ActionForm, FieldError, SubmitButton } from "@/components/admin/action-form";
 import { PageHeader, Panel } from "@/components/admin/page-header";
+import { ProfilePhotoManager } from "@/components/admin/profile-photo-manager";
 import { fieldClass, helpClass, labelClass, textareaClass } from "@/components/ui/field";
 import { requireAdmin } from "@/lib/auth/guard";
 import { db } from "@/lib/db";
@@ -21,6 +22,10 @@ export default async function ProfilePage() {
         title="자기소개·링크"
         description="홈 첫 화면에 보이는 내용입니다. 비워 둔 항목은 공개 페이지에 표시되지 않습니다."
       />
+      {/* 사진은 고르는 즉시 올라가므로 아래 저장 폼과 따로 둔다. */}
+      <Panel title="프로필 사진" className="mb-5">
+        <ProfilePhotoManager photoUrl={profile.photoFile ? `/uploads/${profile.photoFile}` : null} />
+      </Panel>
       <ActionForm action={saveProfile} className="space-y-5">
         <Panel title="소개">
           <div className="grid gap-4 sm:grid-cols-2">

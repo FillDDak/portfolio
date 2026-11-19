@@ -16,7 +16,7 @@ test.describe("자기소개", () => {
       await expect(page.getByRole("status").filter({ hasText: /저장/ })).toBeVisible();
 
       await page.goto("/");
-      const paragraph = page.locator("#hero-heading ~ p").filter({ hasText: first });
+      const paragraph = page.locator("#about p").filter({ hasText: first });
       // 화면에 보이는 글자(innerText)에 줄바꿈이 남아 있고, 실제로 두 줄 높이로 그려진다.
       await expect.poll(() => paragraph.innerText()).toBe(`${first}\n${second}`);
       const lineHeight = await paragraph.evaluate((element) => parseFloat(getComputedStyle(element).lineHeight));

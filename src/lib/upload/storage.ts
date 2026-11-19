@@ -66,6 +66,40 @@ export async function saveImage(bytes: Uint8Array) {
   return { file: name, width, height, bytes: output.length };
 }
 
+/** 프로필 사진 한 변의 크기(px). 화면에는 최대 288px 로 보이므로 고해상도 화면까지 넉넉하다. */
+export const PROFILE_PHOTO_SIZE = 800;
+
+/**
+ * 프로필 사진을 검증하고 정사각형 webp 로 잘라 저장한다.
+ * 정사각형이 아니면 사진에서 눈에 띄는 부분(대개 얼굴)을 중심으로 자른다.
+ */
+export async function saveProfilePhoto(bytes: Uint8Array) {
+  const check = checkImageUpload(bytes);
+  if (!check.ok) throw new UploadError(check.message);
+
+  let output: Buffer;
+  try {
+    output = await sharp(bytes, { limitInputPixels: 50_000_000 })
+      .rotate()
+      .resize({
+        width: PROFILE_PHOTO_SIZE,
+        height: PROFILE_PHOTO_SIZE,
+        fit: "cover",
+        position: sharp.strategy.attention,
+      })
+      .webp({ quality: 85 })
+      .toBuffer();
+  } catch {
+    throw new UploadError("이미지를 읽지 못했습니다. 파일이 손상되지 않았는지 확인해 주세요.");
+  }
+
+  const name = newName("webp");
+  const dir = dirFor("images");
+  await mkdir(/* turbopackIgnore: true */ dir, { recursive: true });
+  await writeFile(/* turbopackIgnore: true */ path.join(dir, name), output);
+  return { file: name, bytes: output.length };
+}
+
 export async function savePdf(bytes: Uint8Array) {
   const check = checkPdfUpload(bytes);
   if (!check.ok) throw new UploadError(check.message);

@@ -24,6 +24,8 @@ model Profile {
   /// 업로드된 PDF의 서버 파일명. 없으면 null
   resumeFile      String?
   resumeUpdatedAt DateTime?
+  /// 첫 화면에 보여 줄 프로필 사진(업로드 폴더 images 안의 서버 파일명, 정사각형 webp). 없으면 null
+  photoFile       String?
   updatedAt       DateTime  @updatedAt
 }
 
