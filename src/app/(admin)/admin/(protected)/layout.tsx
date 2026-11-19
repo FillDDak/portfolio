@@ -25,6 +25,7 @@ const navItems: AdminNavItem[] = [
   { href: "/admin/certificates", label: "자격증" },
   { href: "/admin/messages", label: "받은 문의", dividerAfter: true },
   { href: "/admin/monitors", label: "상태 감시" },
+  { href: "/admin/server", label: "서버·배포" },
 ];
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
