@@ -3,6 +3,7 @@ import { saveProfile } from "@/actions/content";
 import { ActionForm, FieldError, SubmitButton } from "@/components/admin/action-form";
 import { PageHeader, Panel } from "@/components/admin/page-header";
 import { ProfilePhotoManager } from "@/components/admin/profile-photo-manager";
+import { TechIconHint } from "@/components/admin/tech-icon-hint";
 import { fieldClass, helpClass, labelClass, textareaClass } from "@/components/ui/field";
 import { requireAdmin } from "@/lib/auth/guard";
 import { db } from "@/lib/db";
@@ -84,7 +85,8 @@ export default async function ProfilePage() {
               placeholder="Java, Spring Boot, MySQL"
               className={fieldClass}
             />
-            <p className={helpClass}>쉼표로 구분합니다. 5~6개 이내를 권장합니다.</p>
+            <p className={helpClass}>쉼표로 구분합니다. 5~6개 이내를 권장합니다. 아이콘이 있는 기술은 이름 앞에 로고가 붙습니다.</p>
+            <TechIconHint inputId="coreStack" multiple />
             <FieldError name="coreStack" />
           </div>
         </Panel>

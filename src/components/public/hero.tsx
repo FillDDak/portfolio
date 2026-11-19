@@ -1,5 +1,6 @@
 import { ArrowUpRightIcon, FileIcon, MailIcon } from "@/components/icons";
 import { buttonClass } from "@/components/ui/button";
+import { TechLabel } from "@/components/tech-label";
 import type { PublicProfile } from "@/lib/data/public";
 import { getProfileLinks, profileLinkIcons } from "./profile-links";
 
@@ -49,9 +50,9 @@ export function Hero({ profile }: { profile: PublicProfile }) {
                 {profile.coreStack.map((item) => (
                   <li
                     key={item}
-                    className="rounded-md border border-line bg-surface px-2.5 py-1 font-mono text-[0.8125rem] font-medium md:text-sm"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-line bg-surface px-2.5 py-1 font-mono text-[0.8125rem] font-medium md:text-sm"
                   >
-                    {item}
+                    <TechLabel name={item} />
                   </li>
                 ))}
               </ul>

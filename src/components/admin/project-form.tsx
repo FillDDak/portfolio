@@ -9,6 +9,7 @@ import { buttonClass } from "@/components/ui/button";
 import { errorClass, fieldClass, helpClass, labelClass, textareaClass } from "@/components/ui/field";
 import type { ActionResult } from "@/lib/action-result";
 import { Panel } from "./page-header";
+import { TechIconHint } from "./tech-icon-hint";
 
 // 미리보기를 열 때만 Markdown 렌더러를 불러온다.
 const Markdown = dynamic(() => import("@/components/markdown").then((mod) => mod.Markdown), {
@@ -319,7 +320,8 @@ export function ProjectForm({
               aria-invalid={Boolean(errors.tags)}
               className={fieldClass}
             />
-            <p className={helpClass}>쉼표로 구분합니다.</p>
+            <p className={helpClass}>쉼표로 구분합니다. 아이콘이 있는 기술은 이름 앞에 로고가 붙습니다.</p>
+            <TechIconHint inputId="tags" multiple />
             {fieldError("tags")}
           </div>
           <div>

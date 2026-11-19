@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRightIcon, GitHubIcon, MailIcon, NoteIcon } from "@/components/icons";
 import { Markdown } from "@/components/markdown";
+import { TechLabel } from "@/components/tech-label";
 import { buttonClass } from "@/components/ui/button";
 import type { PublicProject } from "@/lib/data/public";
 import { formatPeriod } from "@/lib/format";
@@ -45,9 +46,9 @@ export function ProjectArticle({ project }: { project: PublicProject }) {
                   {project.tags.map((tag) => (
                     <li
                       key={tag}
-                      className="rounded-md bg-surface-2 px-2 py-0.5 font-mono text-[0.8125rem] text-muted"
+                      className="inline-flex items-center gap-1.5 rounded-md bg-surface-2 px-2 py-0.5 font-mono text-[0.8125rem] text-muted"
                     >
-                      {tag}
+                      <TechLabel name={tag} />
                     </li>
                   ))}
                 </ul>

@@ -1,3 +1,4 @@
+import { TechLabel } from "@/components/tech-label";
 import type { PublicCertificate, PublicProjectCard, PublicSkillGroup } from "@/lib/data/public";
 import { formatDate } from "@/lib/format";
 import { ProjectCard } from "./project-card";
@@ -48,11 +49,11 @@ export function SkillsSection({ index, groups }: { index: number; groups: Public
                     key={skill.id}
                     className={
                       skill.level === "USED"
-                        ? "rounded-md border border-line-strong bg-surface px-2.5 py-1 text-[0.9375rem] font-medium"
-                        : "rounded-md border border-dashed border-line-strong px-2.5 py-1 text-[0.9375rem] text-muted"
+                        ? "inline-flex items-center gap-1.5 rounded-md border border-line-strong bg-surface px-2.5 py-1 text-[0.9375rem] font-medium"
+                        : "inline-flex items-center gap-1.5 rounded-md border border-dashed border-line-strong px-2.5 py-1 text-[0.9375rem] text-muted"
                     }
                   >
-                    {skill.name}
+                    <TechLabel name={skill.name} />
                     <span className="sr-only">
                       {skill.level === "USED" ? " (실무·프로젝트 사용)" : " (학습 경험)"}
                     </span>
