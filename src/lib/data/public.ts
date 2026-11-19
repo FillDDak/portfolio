@@ -185,6 +185,6 @@ export async function getActiveMonitors() {
     where: { isActive: true },
     orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
   });
-  // 상태 페이지에서 url 은 글자로 보여 주지 않고 '사이트 방문' 버튼의 링크로만 쓴다.
+  // 상태 페이지에서 url 은 글자로 보여 주지 않고 '방문' 버튼의 링크로만 쓴다.
   return monitors.map(({ id, name, description, url }) => ({ id, name, description, url }));
 }

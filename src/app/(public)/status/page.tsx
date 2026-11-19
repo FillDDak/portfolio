@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { AlertCircleIcon, ArrowUpRightIcon, CheckCircleIcon } from "@/components/icons";
-import { buttonClass } from "@/components/ui/button";
 import { getActiveMonitors } from "@/lib/data/public";
 import { formatDateTime } from "@/lib/format";
 import { getSharedStatusChecker, type CheckResult } from "@/lib/status/check";
@@ -88,35 +87,38 @@ function StatusBoard({
         {monitors.map((monitor, index) => {
           const result = results?.[index] ?? null;
           return (
-            // 주소 글자는 보여 주지 않고, 아래쪽 '사이트 방문' 버튼으로 그 서비스로 이동한다.
-            <li key={monitor.id} className="px-5 py-4 md:px-6 md:py-5">
-              <div className="flex items-start justify-between gap-4">
-                <h2 className="min-w-0 pt-1 text-[1.0625rem] font-semibold">{monitor.name}</h2>
+            // 주소 글자는 보여 주지 않고, 상태 배지 옆 '방문' 버튼으로 그 서비스로 이동한다.
+            <li key={monitor.id} className="px-5 py-3 md:px-6">
+              <div className="flex items-center gap-2">
+                <h2 className="min-w-0 flex-1 text-[1.0625rem] font-semibold">{monitor.name}</h2>
                 <StateBadge state={result?.state ?? null} />
-              </div>
-              {monitor.description ? <p className="mt-1 text-muted">{monitor.description}</p> : null}
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-                {result?.reason ? (
-                  <p className="text-sm font-medium text-danger">{result.reason}</p>
-                ) : result?.responseMs != null ? (
-                  <p className="text-sm text-muted">
-                    응답 시간{" "}
-                    <span className="font-mono">{result.responseMs.toLocaleString("ko-KR")}ms</span>
-                  </p>
-                ) : (
-                  <span />
-                )}
+                {/* 눌리는 영역은 44px 를 유지하고, 보이는 버튼은 상태 배지와 같은 높이로 작게 둔다. */}
                 <a
                   href={monitor.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={buttonClass("secondary", "ml-auto")}
+                  className="group -my-1.5 inline-flex min-h-11 shrink-0 items-center"
                 >
-                  <span aria-hidden="true">사이트 방문</span>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-line-strong px-3 py-1 text-sm font-semibold transition-colors duration-150 group-hover:border-foreground/40 group-hover:bg-surface-2">
+                    <span aria-hidden="true">방문</span>
+                    <ArrowUpRightIcon width={14} height={14} className="shrink-0" />
+                  </span>
                   <span className="sr-only">{monitor.name} 사이트 방문 (새 탭에서 열림)</span>
-                  <ArrowUpRightIcon width={16} height={16} className="shrink-0" />
                 </a>
               </div>
+              {monitor.description || result?.responseMs != null ? (
+                <p className="flex flex-wrap gap-x-3 text-[0.9375rem] text-muted">
+                  {monitor.description ? <span>{monitor.description}</span> : null}
+                  {!result?.reason && result?.responseMs != null ? (
+                    <span className="text-sm leading-[inherit]">
+                      응답 <span className="font-mono">{result.responseMs.toLocaleString("ko-KR")}ms</span>
+                    </span>
+                  ) : null}
+                </p>
+              ) : null}
+              {result?.reason ? (
+                <p className="mt-0.5 text-sm font-medium text-danger">{result.reason}</p>
+              ) : null}
             </li>
           );
         })}
@@ -130,7 +132,7 @@ function StatusBoard({
 }
 
 function StateBadge({ state }: { state: CheckResult["state"] | null }) {
-  const base = "inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold";
+  const base = "inline-flex shrink-0 items-center gap-1 rounded-full border border-transparent px-2.5 py-1 text-sm font-semibold";
   if (state === "up") {
     return (
       <span className={`${base} bg-success-soft text-success`}>
