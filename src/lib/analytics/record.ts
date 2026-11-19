@@ -1,9 +1,9 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { getEnv } from "@/lib/env";
+import { describeDevice, type ClientInfo } from "@/lib/device/describe";
 import {
   cleanUtmSource,
-  deviceType,
   parseTrackedPath,
   referrerDomain,
   shouldCountView,
@@ -24,6 +24,7 @@ export async function recordPageView(input: {
   utmSource: unknown;
   ip: string;
   userAgent: string;
+  client?: ClientInfo;
   now?: Date;
 }): Promise<RecordResult> {
   const page = parseTrackedPath(input.path);
@@ -59,6 +60,7 @@ export async function recordPageView(input: {
   if (last && !shouldCountView(last.createdAt, now)) return "duplicate";
 
   const siteHost = new URL(env.SITE_URL).hostname;
+  const device = describeDevice(input.userAgent, input.client);
   // 오늘 처음 온 방문자일 때만 방문자 수를 올린다.
   const isNewVisitorToday = last === null;
 
@@ -70,7 +72,10 @@ export async function recordPageView(input: {
         visitorHash: hash,
         referrerDomain: referrerDomain(typeof input.referrer === "string" ? input.referrer : "", siteHost),
         utmSource: cleanUtmSource(typeof input.utmSource === "string" ? input.utmSource : ""),
-        device: deviceType(input.userAgent),
+        device: device.kind,
+        browser: device.browser,
+        os: device.os,
+        model: device.model,
         createdAt: now,
       },
     }),

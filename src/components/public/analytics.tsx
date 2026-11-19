@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { collectClientInfo } from "@/lib/device/collect";
 import { sendTrack, sendTrackBeacon, splitTrackAttribute, trackEventOnce } from "@/lib/analytics/client";
 
 // src/lib/analytics/realtime.ts 의 HEARTBEAT_INTERVAL_MS 와 같은 값
@@ -37,12 +38,8 @@ export function Analytics() {
   // 페이지를 볼 때마다 조회 1건
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    sendTrack({
-      type: "view",
-      path: pathname,
-      referrer: document.referrer,
-      utmSource: params.get("utm_source") ?? "",
-    });
+    const view = { type: "view", path: pathname, referrer: document.referrer, utmSource: params.get("utm_source") ?? "" };
+    void collectClientInfo().then((client) => sendTrack({ ...view, client }));
   }, [pathname]);
 
   // 홈 방문과 섹션 도달

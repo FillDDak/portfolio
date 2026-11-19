@@ -9,7 +9,8 @@ import { db } from "@/lib/db";
 import { getEnv } from "@/lib/env";
 import { formatDateTime } from "@/lib/format";
 import { LOGIN_HISTORY_RETENTION_DAYS } from "@/lib/login-history";
-import { describeUserAgent, formatLocation } from "@/lib/login-history/parse";
+import { describeDevice, deviceLine, type ClientInfo } from "@/lib/device/describe";
+import { formatLocation, readClientInfo } from "@/lib/login-history/parse";
 import { getClientIp } from "@/lib/request-ip";
 
 // 관리자 화면은 로딩 표시 없이, 데이터를 다 받은 뒤 완성된 화면으로 바로 바꾼다(layout.tsx 설명 참고).
@@ -30,6 +31,8 @@ type Row = {
   result: string;
   ip: string;
   userAgent: string;
+  clientInfo: string;
+  deviceId: string;
   country: string;
   region: string;
   city: string;
@@ -150,19 +153,19 @@ export default async function LoginHistoryPage({ searchParams }: PageProps<"/adm
               </thead>
               <tbody>
                 {rows.map((row) => (
-                  <tr key={row.id} className="border-t border-line">
+                  <tr key={row.id} className="border-t border-line align-top">
                     <td className="px-4 py-2.5 whitespace-nowrap tabular-nums">{formatDateTime(row.createdAt)}</td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-4 py-2.5 whitespace-nowrap">
                       <ResultBadge result={row.result} />
                     </td>
                     <td className="px-4 py-2.5 whitespace-nowrap">
                       <IpText ip={row.ip} current={row.ip === currentIp} />
                     </td>
-                    <td className="px-4 py-2.5">
+                    <td className="min-w-28 px-4 py-2.5">
                       <Location row={row} />
                     </td>
-                    <td className="px-4 py-2.5 whitespace-nowrap" title={row.userAgent}>
-                      {describeUserAgent(row.userAgent)}
+                    <td className="w-72 min-w-64 px-4 py-2.5">
+                      <Device row={row} />
                     </td>
                   </tr>
                 ))}
@@ -188,7 +191,9 @@ export default async function LoginHistoryPage({ searchParams }: PageProps<"/adm
                     <Location row={row} />
                   </dd>
                   <dt className="text-muted">기기</dt>
-                  <dd>{describeUserAgent(row.userAgent)}</dd>
+                  <dd className="min-w-0">
+                    <Device row={row} />
+                  </dd>
                 </dl>
               </li>
             ))}
@@ -230,6 +235,48 @@ function Location({ row }: { row: Row }) {
       {row.isp ? <span className="block text-sm text-muted">{row.isp}</span> : null}
     </>
   );
+}
+
+/** 브라우저·OS·기종, 같은 기기 묶음 값, 펼치면 나머지 정보 */
+function Device({ row }: { row: Row }) {
+  const info = readClientInfo(row.clientInfo);
+  const summary = describeDevice(row.userAgent, info);
+  const details = detailItems(info);
+  return (
+    <>
+      <span>{deviceLine(summary, row.userAgent ? "알 수 없음" : "정보 없음")}</span>
+      {row.deviceId ? (
+        <span className="block text-sm text-muted">
+          기기 ID <span className="font-mono">{row.deviceId}</span>
+        </span>
+      ) : null}
+      <details className="mt-0.5 text-sm">
+        <summary className="cursor-pointer text-muted">자세히</summary>
+        <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-2.5 gap-y-0.5">
+          {details.map(([label, value]) => (
+            <div key={label} className="contents">
+              <dt className="text-muted">{label}</dt>
+              <dd className="min-w-0">{value}</dd>
+            </div>
+          ))}
+          <dt className="text-muted">원문</dt>
+          <dd className="min-w-0 font-mono text-[0.8125rem] break-all">{row.userAgent || "없음"}</dd>
+        </dl>
+      </details>
+    </>
+  );
+}
+
+function detailItems(info: ClientInfo): [string, string][] {
+  const items: [string, string | undefined][] = [
+    ["화면", info.screen ? `${info.screen}${info.dpr ? ` (×${info.dpr})` : ""}` : undefined],
+    ["시간대", info.tz],
+    ["언어", info.langs],
+    ["CPU", info.cores ? `${info.cores}코어` : undefined],
+    ["메모리", info.memory ? `약 ${info.memory}GB` : undefined],
+    ["터치", info.touch !== undefined ? (info.touch > 0 ? `지원(${info.touch}점)` : "없음") : undefined],
+  ];
+  return items.filter((item): item is [string, string] => Boolean(item[1]));
 }
 
 function IpText({ ip, current }: { ip: string; current: boolean }) {

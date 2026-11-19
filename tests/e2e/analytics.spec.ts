@@ -63,6 +63,9 @@ test.describe("조회수 기록", () => {
     // 모바일 화면에서는 표 대신 카드로 보이므로, 화면에 실제로 보이는 것 중에서 찾는다.
     const device = testInfo.project.name === "mobile" ? "모바일" : "PC";
     await expect(admin.getByText(device).filter({ visible: true }).first()).toBeVisible();
+    // 기기 종류 아래에 OS·기종·브라우저가 함께 보인다.
+    const detail = testInfo.project.name === "mobile" ? /Android [\d.]+ · Pixel 7 · Chrome \d+/ : /Windows.* · Chrome \d+/;
+    await expect(admin.getByText(detail).filter({ visible: true }).first()).toBeVisible();
     await page.goto(PROJECT_PATH);
     await expect(page.getByText(/조회\s*\d|조회수/)).toHaveCount(0);
     await admin.context().close();

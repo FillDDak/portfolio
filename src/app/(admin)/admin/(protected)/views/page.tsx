@@ -4,6 +4,7 @@ import { EmptyState, PageHeader, Panel } from "@/components/admin/page-header";
 import { buttonClass } from "@/components/ui/button";
 import { fieldClass, labelClass } from "@/components/ui/field";
 import { getViewLog, VIEW_LOG_PAGE_SIZE } from "@/lib/analytics/stats";
+import { DEVICE_KIND_LABEL } from "@/lib/device/describe";
 import { requireAdmin } from "@/lib/auth/guard";
 import { db } from "@/lib/db";
 import { getEnv } from "@/lib/env";
@@ -14,7 +15,6 @@ export const instant = false;
 
 export const metadata: Metadata = { title: "조회 기록" };
 
-const deviceLabel: Record<string, string> = { desktop: "PC", mobile: "모바일", tablet: "태블릿" };
 const isDate = (value: unknown): value is string =>
   typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
 
@@ -132,7 +132,9 @@ export default async function ViewsPage({ searchParams }: PageProps<"/admin/view
                     <td className="px-4 py-2.5">
                       <Referrer domain={row.referrerDomain} utm={row.utmSource} />
                     </td>
-                    <td className="px-4 py-2.5 whitespace-nowrap">{deviceLabel[row.device] ?? row.device}</td>
+                    <td className="px-4 py-2.5">
+                      <Device row={row} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -152,7 +154,9 @@ export default async function ViewsPage({ searchParams }: PageProps<"/admin/view
                     <Referrer domain={row.referrerDomain} utm={row.utmSource} />
                   </dd>
                   <dt className="text-muted">기기</dt>
-                  <dd>{deviceLabel[row.device] ?? row.device}</dd>
+                  <dd>
+                    <Device row={row} />
+                  </dd>
                 </dl>
               </li>
             ))}
@@ -192,6 +196,16 @@ function Referrer({ domain, utm }: { domain: string; utm: string }) {
           utm: {utm}
         </span>
       ) : null}
+    </>
+  );
+}
+
+function Device({ row }: { row: { device: string; browser: string; os: string; model: string } }) {
+  const detail = [row.os, row.model, row.browser].filter(Boolean).join(" · ");
+  return (
+    <>
+      <span className="whitespace-nowrap">{DEVICE_KIND_LABEL[row.device] ?? row.device}</span>
+      {detail ? <span className="block text-sm text-muted">{detail}</span> : null}
     </>
   );
 }

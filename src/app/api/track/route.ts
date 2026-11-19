@@ -1,6 +1,7 @@
 import { isBot, parseContentEvent } from "@/lib/analytics/classify";
 import { getRealtimeTracker } from "@/lib/analytics/realtime";
 import { recordContentEvent, recordPageView } from "@/lib/analytics/record";
+import { parseClientInfo } from "@/lib/device/describe";
 import { readSessionToken, SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getEnv } from "@/lib/env";
 import { getSharedRateLimiter } from "@/lib/rate-limit";
@@ -19,7 +20,7 @@ function readCookie(request: Request, name: string): string | undefined {
 
 /**
  * 공개 페이지가 보내는 방문 신호.
- *   { type: "view", path, referrer, utmSource }  조회 기록
+ *   { type: "view", path, referrer, utmSource, client }  조회 기록(client: 기기 정보, 선택)
  *   { type: "beat", sessionId }                  실시간 접속자용 하트비트(15초마다, 탭이 보일 때)
  *   { type: "leave", sessionId }                 탭을 닫거나 다른 탭으로 갔을 때. 실시간 접속자에서 바로 뺀다
  *   { type: "event", event, target }             콘텐츠 반응(섹션 도달, 카드·링크 클릭 등) 횟수
@@ -64,6 +65,7 @@ export async function POST(request: Request) {
         utmSource: body.utmSource,
         ip,
         userAgent,
+        client: parseClientInfo(body.client),
       });
     }
 

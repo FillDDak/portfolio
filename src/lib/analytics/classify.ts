@@ -9,16 +9,6 @@ export function isBot(userAgent: string | null | undefined): boolean {
   return BOT_PATTERN.test(userAgent);
 }
 
-export type DeviceType = "desktop" | "mobile" | "tablet";
-
-export function deviceType(userAgent: string): DeviceType {
-  if (/ipad|tablet|playbook|silk|kindle|sm-t\d|nexus (7|9|10)/i.test(userAgent)) return "tablet";
-  // 안드로이드는 "Mobile" 이 없으면 태블릿이다.
-  if (/android/i.test(userAgent) && !/mobile/i.test(userAgent)) return "tablet";
-  if (/mobi|iphone|ipod|android|windows phone|blackberry|opera mini/i.test(userAgent)) return "mobile";
-  return "desktop";
-}
-
 /**
  * 유입 사이트의 도메인만 남긴다. 주소의 경로와 검색어에는 개인 정보가 들어 있을 수 있어 저장하지 않는다.
  * 내 사이트 안에서 이동한 경우와 값이 없는 경우는 빈 문자열(직접 접속).

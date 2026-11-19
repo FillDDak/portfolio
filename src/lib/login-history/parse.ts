@@ -1,5 +1,7 @@
 /** 로그인 기록: 외부에 묻지 않고 판단하는 부분(테스트하기 쉽게 DB·네트워크와 나눈다). */
+import { createHash } from "node:crypto";
 import { isIP } from "node:net";
+import { describeDevice, parseClientInfo, type ClientInfo } from "@/lib/device/describe";
 
 /** 위치를 조회할 수 없는 주소: 형식이 틀렸거나, 사설·내부·예약 대역 */
 export function isPrivateIp(ip: string): boolean {
@@ -53,35 +55,36 @@ export function formatLocation(info: { country: string; region: string; city: st
   return parts.join(", ");
 }
 
-/** User-Agent 를 "Chrome · Windows" 정도로 줄인다. 모르면 "알 수 없음". */
-export function describeUserAgent(userAgent: string): string {
-  const ua = userAgent;
-  const browser = /Edg\//.test(ua)
-    ? "Edge"
-    : /SamsungBrowser\//.test(ua)
-      ? "삼성 인터넷"
-      : /Whale\//.test(ua)
-        ? "Whale"
-        : /OPR\//.test(ua)
-          ? "Opera"
-          : /Firefox\/|FxiOS\//.test(ua)
-            ? "Firefox"
-            : /Chrome\/|CriOS\//.test(ua)
-              ? "Chrome"
-              : /Safari\//.test(ua) && /Version\//.test(ua)
-                ? "Safari"
-                : "";
-  const os = /iPhone|iPad|iPod/.test(ua)
-    ? "iOS"
-    : /Android/.test(ua)
-      ? "Android"
-      : /Windows/.test(ua)
-        ? "Windows"
-        : /Mac OS X|Macintosh/.test(ua)
-          ? "macOS"
-          : /Linux/.test(ua)
-            ? "Linux"
-            : "";
-  if (!browser && !os) return ua ? "알 수 없음" : "정보 없음";
-  return [browser || "기타 브라우저", os].filter(Boolean).join(" · ");
+/** 저장된 기기 정보(JSON)를 읽는다. 깨졌으면 빈 객체. */
+export function readClientInfo(json: string): ClientInfo {
+  try {
+    return parseClientInfo(JSON.parse(json));
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * 같은 기기에서 온 기록을 묶어 보기 위한 짧은 값("A1B2-C3D4").
+ * 브라우저·OS 업데이트로 바뀌지 않게 버전은 빼고, 화면·시간대·언어·하드웨어 값을 섞는다.
+ * 브라우저에서 받은 값이 없으면(스크립트 없이 보낸 요청 등) 빈 문자열.
+ */
+export function deviceIdOf(userAgent: string, info: ClientInfo): string {
+  if (!info.screen) return "";
+  const device = describeDevice(userAgent, info);
+  const withoutVersion = (value: string) => value.replace(/ [\d.]+$/, "");
+  const parts = [
+    withoutVersion(device.browser),
+    withoutVersion(device.os),
+    device.model,
+    info.screen,
+    info.dpr,
+    info.tz,
+    info.langs,
+    info.cores,
+    info.memory,
+    info.touch,
+  ];
+  const hash = createHash("sha256").update(parts.map((part) => part ?? "").join("|")).digest("hex").toUpperCase();
+  return `${hash.slice(0, 4)}-${hash.slice(4, 8)}`;
 }

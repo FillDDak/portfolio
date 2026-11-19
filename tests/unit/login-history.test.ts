@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { describeUserAgent, formatLocation, isPrivateIp, parseIpApiResponse } from "@/lib/login-history/parse";
+import { formatLocation, isPrivateIp, parseIpApiResponse } from "@/lib/login-history/parse";
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/db", () => ({ db: {} }));
@@ -59,16 +59,4 @@ describe("로그인 기록: 위치 응답 해석", () => {
     const limited = vi.fn(async () => new Response(null, { status: 429 }));
     expect(await lookupGeo("203.0.113.5", limited as unknown as typeof fetch)).toBeNull();
   });
-});
-
-describe("로그인 기록: 기기 표시", () => {
-  it.each([
-    ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36", "Chrome · Windows"],
-    ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36 Edg/131.0", "Edge · Windows"],
-    ["Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1", "Safari · iOS"],
-    ["Mozilla/5.0 (Linux; Android 14; SM-S918N) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/26.0 Chrome/122.0 Mobile Safari/537.36", "삼성 인터넷 · Android"],
-    ["Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15", "Safari · macOS"],
-    ["curl/8.5.0", "알 수 없음"],
-    ["", "정보 없음"],
-  ])("%s → %s", (ua, expected) => expect(describeUserAgent(ua)).toBe(expected));
 });

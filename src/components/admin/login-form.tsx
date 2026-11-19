@@ -1,17 +1,24 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { loginAction, type LoginState } from "@/actions/auth";
 import { buttonClass } from "@/components/ui/button";
 import { fieldClass, labelClass } from "@/components/ui/field";
+import { collectClientInfo } from "@/lib/device/collect";
 
 const initialState: LoginState = { error: null };
 
 export function LoginForm() {
   const [state, formAction, pending] = useActionState(loginAction, initialState);
+  const [client, setClient] = useState("");
+
+  useEffect(() => {
+    void collectClientInfo(true).then((info) => setClient(JSON.stringify(info)));
+  }, []);
 
   return (
     <form action={formAction} className="space-y-4">
+      <input type="hidden" name="client" value={client} />
       <div>
         <label htmlFor="username" className={labelClass}>
           아이디

@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
-import { isPrivateIp, parseIpApiResponse, type GeoInfo } from "./parse";
+import type { ClientInfo } from "@/lib/device/describe";
+import { deviceIdOf, isPrivateIp, parseIpApiResponse, type GeoInfo } from "./parse";
 
 export type LoginResult = "SUCCESS" | "FAILURE" | "LOCKED";
 
@@ -33,7 +34,12 @@ export async function lookupGeo(ip: string, fetchImpl: typeof fetch = fetch): Pr
  * 로그인 시도를 기록하고 위치를 채운다. 로그인 응답을 보낸 뒤(after) 호출하므로 로그인 속도에 영향이 없다.
  * 기록에 실패해도 로그인에는 영향이 없도록 오류는 로그만 남긴다.
  */
-export async function recordLoginAttempt(input: { result: LoginResult; ip: string; userAgent: string }) {
+export async function recordLoginAttempt(input: {
+  result: LoginResult;
+  ip: string;
+  userAgent: string;
+  client?: ClientInfo;
+}) {
   try {
     const isPrivate = isPrivateIp(input.ip);
     const row = await db.loginAttempt.create({
@@ -41,6 +47,8 @@ export async function recordLoginAttempt(input: { result: LoginResult; ip: strin
         result: input.result,
         ip: input.ip.slice(0, 64),
         userAgent: input.userAgent.slice(0, 300),
+        clientInfo: JSON.stringify(input.client ?? {}),
+        deviceId: deviceIdOf(input.userAgent, input.client ?? {}),
         geoStatus: isPrivate ? "PRIVATE" : "PENDING",
       },
       select: { id: true },

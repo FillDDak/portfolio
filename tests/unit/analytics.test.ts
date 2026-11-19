@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   cleanUtmSource,
   DEDUPE_WINDOW_MS,
-  deviceType,
   isBot,
   parseContentEvent,
   parseTrackedPath,
   referrerDomain,
   shouldCountView,
 } from "@/lib/analytics/classify";
+import { describeDevice } from "@/lib/device/describe";
 import {
   ACTIVE_WINDOW_MS,
   createRealtimeTracker,
@@ -185,6 +185,8 @@ describe("봇 판별", () => {
     expect(isBot(null)).toBe(true);
   });
 });
+
+const deviceType = (ua: string) => describeDevice(ua).kind;
 
 describe("기기 종류", () => {
   it("PC, 모바일, 태블릿을 구분한다", () => {

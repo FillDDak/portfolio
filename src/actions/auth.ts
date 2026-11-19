@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { z } from "zod";
 import { getLoginGuard } from "@/lib/auth/login-guard";
+import { parseClientInfo } from "@/lib/device/describe";
 import { isAdminConfigured, verifyAdminLogin } from "@/lib/auth/password";
 import {
   createSessionToken,
@@ -39,9 +40,15 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
   const requestHeaders = await headers();
   const ip = getClientIp(requestHeaders, env.TRUSTED_PROXY_HOPS);
   const userAgent = requestHeaders.get("user-agent") ?? "";
+  const client = readClientField(formData.get("client"));
+  // 스크립트가 언어 목록을 보내지 못했으면 요청 헤더의 언어를 쓴다.
+  if (!client.langs) {
+    const languages = parseClientInfo({ langs: acceptLanguages(requestHeaders.get("accept-language")) }).langs;
+    if (languages) client.langs = languages;
+  }
   const guard = getLoginGuard();
   // 기록과 위치 조회는 응답을 보낸 뒤에 한다. 잠긴 뒤의 반복 시도는 기록하지 않는다(잠긴 순간 한 번만 남긴다).
-  const record = (result: LoginResult) => after(() => recordLoginAttempt({ result, ip, userAgent }));
+  const record = (result: LoginResult) => after(() => recordLoginAttempt({ result, ip, userAgent, client }));
 
   const gate = guard.check(ip);
   if (!gate.allowed) {
@@ -87,4 +94,24 @@ export async function logoutAction(): Promise<void> {
 function lockedMessage(retryAfterSeconds: number): string {
   const minutes = Math.max(1, Math.ceil(retryAfterSeconds / 60));
   return `로그인 시도가 너무 많습니다. 약 ${minutes}분 뒤에 다시 시도해 주세요.`;
+}
+
+/** 로그인 폼이 함께 보낸 기기 정보(JSON). 형식이 틀리면 빈 값. */
+function readClientField(value: FormDataEntryValue | null) {
+  if (typeof value !== "string" || value.length > 1000) return {};
+  try {
+    return parseClientInfo(JSON.parse(value));
+  } catch {
+    return {};
+  }
+}
+
+/** "ko-KR,ko;q=0.9,en-US;q=0.8" → "ko-KR,ko,en-US" */
+function acceptLanguages(header: string | null): string {
+  return (header ?? "")
+    .split(",")
+    .map((part) => part.split(";")[0]!.trim())
+    .filter(Boolean)
+    .slice(0, 5)
+    .join(",");
 }

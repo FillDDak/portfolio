@@ -72,7 +72,15 @@ test.describe("로그인 기록", () => {
     // 테스트 IP(10.x)는 내부 주소라 외부에 위치를 묻지 않는다.
     await expect(rowsForIp().nth(0)).toContainText("내부 주소");
     await expect(rowsForIp().nth(0)).toContainText("지금 접속한 IP");
-    await expect(rowsForIp().nth(0)).toContainText(/Chrome/);
+    await expect(rowsForIp().nth(0)).toContainText(/Chrome \d+/);
+    // 브라우저에서 받은 정보로 같은 기기를 묶는 ID 가 붙고, 펼치면 화면·시간대 등이 보인다.
+    const deviceIds = await rowsForIp().getByText(/기기 ID/).allInnerTexts();
+    expect(deviceIds).toHaveLength(2);
+    expect(deviceIds[0]).toMatch(/기기 ID [0-9A-F]{4}-[0-9A-F]{4}/);
+    expect(deviceIds[1]).toBe(deviceIds[0]);
+    await rowsForIp().nth(0).getByText("자세히").click();
+    await expect(rowsForIp().nth(0)).toContainText(/화면\s*\d+x\d+/);
+    await expect(rowsForIp().nth(0)).toContainText("시간대");
 
     await page.getByRole("link", { name: "실패·잠김만" }).click();
     await expect(page).toHaveURL(/filter=failed/);
