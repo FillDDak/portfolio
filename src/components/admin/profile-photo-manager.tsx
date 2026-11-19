@@ -4,11 +4,19 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, type ChangeEvent } from "react";
 import type { ProfilePhotoResponse } from "@/app/api/admin/profile-photo/route";
 import { buttonClass } from "@/components/ui/button";
+import { ProfilePhotoPosition, type PhotoSource } from "./profile-photo-position";
 
 type Status = { type: "idle" } | { type: "ok"; message: string } | { type: "error"; message: string };
 
 /** 홈 첫 화면에 보이는 프로필 사진을 올리고, 바꾸고, 지운다. */
-export function ProfilePhotoManager({ photoUrl }: { photoUrl: string | null }) {
+export function ProfilePhotoManager({
+  photoUrl,
+  source,
+}: {
+  photoUrl: string | null;
+  /** 자르기 전 원본. 있으면 보이는 부분을 고를 수 있다. */
+  source: PhotoSource | null;
+}) {
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [busy, setBusy] = useState<"upload" | "delete" | null>(null);
@@ -61,7 +69,7 @@ export function ProfilePhotoManager({ photoUrl }: { photoUrl: string | null }) {
   return (
     <div>
       <div className="flex flex-wrap items-center gap-4">
-        {photoUrl ? (
+        {photoUrl && source ? null : photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- 업로드 시 이미 정사각형 webp 로 변환했다
           <img
             src={photoUrl}
@@ -102,13 +110,19 @@ export function ProfilePhotoManager({ photoUrl }: { photoUrl: string | null }) {
         </div>
       </div>
       <p className="mt-2 text-sm text-muted">
-        jpg, png, webp, 5MB 이하. 정사각형으로 자동으로 잘리며(얼굴 등 눈에 띄는 부분 중심), 사진의 위치
-        정보 같은 부가 정보는 지워집니다. PC 에서는 첫 화면 오른쪽에 크게, 모바일에서는 이름 옆에 작은
-        원형으로 보입니다. 지우면 사진 없이 원래 화면으로 돌아갑니다.
+        jpg, png, webp, 5MB 이하. 처음에는 얼굴 등 눈에 띄는 부분을 가운데로 정사각형으로 잘리고, 아래에서
+        보이는 부분을 바꿀 수 있습니다. 사진의 위치 정보 같은 부가 정보는 지워집니다. PC 에서는 첫 화면
+        오른쪽에 크게, 모바일에서는 이름 옆에 작은 원형으로 보입니다. 지우면 사진 없이 원래 화면으로 돌아갑니다.
       </p>
+      {photoUrl && !source ? (
+        <p className="mt-2 text-sm text-muted">
+          이 사진은 원본이 보관되지 않아 보이는 부분을 바꿀 수 없습니다. 바꾸려면 사진을 다시 올려 주세요.
+        </p>
+      ) : null}
 
       <p
         role={status.type === "error" ? "alert" : "status"}
+        data-testid="photo-upload-status"
         className={
           status.type === "idle"
             ? "sr-only"
@@ -119,6 +133,13 @@ export function ProfilePhotoManager({ photoUrl }: { photoUrl: string | null }) {
       >
         {status.type === "idle" ? "" : status.message}
       </p>
+
+      {photoUrl && source ? (
+        <div className="mt-5 border-t border-line pt-5">
+          {/* 새 사진을 올리면 편집 상태를 처음부터 다시 잡는다. */}
+          <ProfilePhotoPosition key={source.url} source={source} />
+        </div>
+      ) : null}
 
       <dialog
         ref={dialogRef}

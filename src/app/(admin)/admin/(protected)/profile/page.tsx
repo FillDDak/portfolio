@@ -6,6 +6,7 @@ import { ProfilePhotoManager } from "@/components/admin/profile-photo-manager";
 import { fieldClass, helpClass, labelClass, textareaClass } from "@/components/ui/field";
 import { requireAdmin } from "@/lib/auth/guard";
 import { db } from "@/lib/db";
+import { readImageSize } from "@/lib/upload/storage";
 
 // 관리자 화면은 로딩 표시 없이, 데이터를 다 받은 뒤 완성된 화면으로 바로 바꾼다(아래 layout.tsx 설명 참고).
 export const instant = false;
@@ -15,6 +16,15 @@ export const metadata: Metadata = { title: "자기소개·링크" };
 export default async function ProfilePage() {
   await requireAdmin();
   const profile = await db.profile.findUniqueOrThrow({ where: { id: 1 } });
+  const sourceSize = profile.photoSourceFile ? await readImageSize(profile.photoSourceFile) : null;
+  const photoSource =
+    profile.photoSourceFile && sourceSize
+      ? {
+          url: `/uploads/${profile.photoSourceFile}`,
+          ...sourceSize,
+          crop: { x: profile.photoFocusX, y: profile.photoFocusY, zoom: profile.photoZoom },
+        }
+      : null;
 
   return (
     <div className="max-w-3xl">
@@ -24,7 +34,10 @@ export default async function ProfilePage() {
       />
       {/* 사진은 고르는 즉시 올라가므로 아래 저장 폼과 따로 둔다. */}
       <Panel title="프로필 사진" className="mb-5">
-        <ProfilePhotoManager photoUrl={profile.photoFile ? `/uploads/${profile.photoFile}` : null} />
+        <ProfilePhotoManager
+          photoUrl={profile.photoFile ? `/uploads/${profile.photoFile}` : null}
+          source={photoSource}
+        />
       </Panel>
       <ActionForm action={saveProfile} className="space-y-5">
         <Panel title="소개">
