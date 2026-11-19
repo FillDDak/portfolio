@@ -110,9 +110,8 @@ export function ProfilePhotoManager({
         </div>
       </div>
       <p className="mt-2 text-sm text-muted">
-        jpg, png, webp, 5MB 이하. 처음에는 얼굴 등 눈에 띄는 부분을 가운데로 정사각형으로 잘리고, 아래에서
-        보이는 부분을 바꿀 수 있습니다. 사진의 위치 정보 같은 부가 정보는 지워집니다. PC 에서는 첫 화면
-        오른쪽에 크게, 모바일에서는 이름 옆에 작은 원형으로 보입니다. 지우면 사진 없이 원래 화면으로 돌아갑니다.
+        jpg, png, webp / 5MB 이하. 정사각형으로 잘리며 보이는 부분은 아래에서 고를 수 있습니다. 위치 정보 등
+        부가 정보는 지워집니다.
       </p>
       {photoUrl && !source ? (
         <p className="mt-2 text-sm text-muted">
