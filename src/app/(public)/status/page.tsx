@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { AlertCircleIcon, CheckCircleIcon } from "@/components/icons";
+import { AlertCircleIcon, ArrowUpRightIcon, CheckCircleIcon } from "@/components/icons";
 import { getActiveMonitors } from "@/lib/data/public";
 import { formatDateTime } from "@/lib/format";
 import { getSharedStatusChecker, type CheckResult } from "@/lib/status/check";
@@ -87,10 +87,21 @@ function StatusBoard({
         {monitors.map((monitor, index) => {
           const result = results?.[index] ?? null;
           return (
-            // 주소는 보여 주지 않는다. 이름과 설명으로 어떤 서비스인지 알리고, 오른쪽에 상태를 둔다.
+            // 주소 글자는 보여 주지 않고, 이름을 누르면 그 서비스로 이동한다. 오른쪽에 상태를 둔다.
             <li key={monitor.id} className="px-5 py-4 md:px-6 md:py-5">
               <div className="flex items-start justify-between gap-4">
-                <h2 className="min-w-0 pt-0.5 text-[1.0625rem] font-semibold">{monitor.name}</h2>
+                <h2 className="min-w-0 text-[1.0625rem] font-semibold">
+                  <a
+                    href={monitor.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="-my-2 inline-flex min-h-11 items-center gap-1 underline-offset-4 hover:text-accent-ink hover:underline"
+                  >
+                    {monitor.name}
+                    <ArrowUpRightIcon width={16} height={16} className="shrink-0 text-muted" />
+                    <span className="sr-only">(새 탭에서 열림)</span>
+                  </a>
+                </h2>
                 <StateBadge state={result?.state ?? null} />
               </div>
               {monitor.description ? <p className="mt-1 text-muted">{monitor.description}</p> : null}
