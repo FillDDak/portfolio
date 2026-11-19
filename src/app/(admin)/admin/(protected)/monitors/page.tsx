@@ -83,7 +83,7 @@ export default async function MonitorsPage() {
     <div className="max-w-4xl">
       <PageHeader
         title="상태 감시"
-        description="상태 페이지(/status)에서 정상 여부와 응답 시간을 확인할 주소입니다. 표시할 주소가 없으면 상태 페이지 링크도 숨겨집니다."
+        description="상태 페이지(/status)에서 정상 여부와 응답 시간을 확인할 주소입니다. 표시할 주소가 없으면 상태 페이지 링크도 숨겨집니다. 서버가 1분마다 확인해서, 두 번 연속 응답하지 않으면 장애 메일을, 다시 응답하면 복구 메일을 문의 받는 주소로 보냅니다."
       />
 
       <div className="space-y-4">

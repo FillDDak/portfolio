@@ -42,4 +42,8 @@ export async function register() {
   };
   setTimeout(purge, 60_000).unref();
   setInterval(purge, 24 * 60 * 60 * 1000).unref();
+
+  // 상태 감시 주소를 1분마다 확인하고, 장애·복구가 생기면 메일로 알린다.
+  const { startMonitorAlerts } = await import("@/lib/status/monitor-loop");
+  startMonitorAlerts();
 }

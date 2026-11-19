@@ -93,8 +93,16 @@ export function buildContactEnvelope(
   };
 }
 
-/** 문의 메일을 보낸다. */
-export async function sendContactMail(input: ContactMailInput): Promise<void> {
+type MailContent = { subject: string; text: string; html: string };
+
+/**
+ * 설정된 SMTP 로 CONTACT_TO 에게 메일 한 통을 보낸다. 문의 메일과 상태 감시 알림이 함께 쓴다.
+ * makeEnvelope 는 보내는 주소와 받는 주소를 받아 From/To/Reply-To 를 정한다.
+ */
+async function sendToOwner(
+  content: MailContent,
+  makeEnvelope: (addresses: { from: string; to: string }) => object,
+): Promise<void> {
   const env = getEnv();
   const from = resolveFromAddress(env);
   if (!env.CONTACT_TO || !env.SMTP_HOST || !env.SMTP_USER || !env.SMTP_PASS || !from) {
@@ -113,18 +121,24 @@ export async function sendContactMail(input: ContactMailInput): Promise<void> {
     socketTimeout: 15_000,
   });
 
-  const { subject, text, html } = buildContactMail(input);
-
   try {
-    await transport.sendMail({
-      ...buildContactEnvelope(input, { from, to: env.CONTACT_TO }),
-      subject,
-      text,
-      html,
-    });
+    await transport.sendMail({ ...makeEnvelope({ from, to: env.CONTACT_TO }), ...content });
   } finally {
     transport.close();
   }
+}
+
+/** 문의 메일을 보낸다. */
+export async function sendContactMail(input: ContactMailInput): Promise<void> {
+  await sendToOwner(buildContactMail(input), (addresses) => buildContactEnvelope(input, addresses));
+}
+
+/** 사이트 운영자(CONTACT_TO)에게 알림 메일을 보낸다. 예: 상태 감시 장애·복구 알림 */
+export async function sendOwnerNotice(content: MailContent): Promise<void> {
+  await sendToOwner(content, ({ from, to }) => ({
+    from: { name: "포트폴리오 알림", address: from },
+    to,
+  }));
 }
 
 export type MailErrorInfo = {
