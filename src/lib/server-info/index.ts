@@ -45,7 +45,7 @@ export type ServerInfo = {
 
 async function readText(path: string): Promise<string | null> {
   try {
-    return await readFile(path, "utf8");
+    return await readFile(/* turbopackIgnore: true */ path, "utf8");
   } catch {
     return null;
   }
@@ -53,7 +53,7 @@ async function readText(path: string): Promise<string | null> {
 
 async function fileSize(path: string): Promise<number | null> {
   try {
-    return (await stat(path)).size;
+    return (await stat(/* turbopackIgnore: true */ path)).size;
   } catch {
     return null;
   }
@@ -63,24 +63,24 @@ async function cgroupMemory(): Promise<ServerInfo["app"]["cgroup"]> {
   const self = await readText("/proc/self/cgroup");
   const path = self ? parseCgroupPath(self) : null;
   if (!path) return null;
-  const base = join("/sys/fs/cgroup", path);
-  const current = parseCgroupLimit((await readText(join(base, "memory.current"))) ?? "");
+  const base = join(/* turbopackIgnore: true */ "/sys/fs/cgroup", path);
+  const current = parseCgroupLimit((await readText(join(/* turbopackIgnore: true */ base, "memory.current"))) ?? "");
   if (current === null) return null;
   return {
     currentBytes: current,
-    highBytes: parseCgroupLimit((await readText(join(base, "memory.high"))) ?? ""),
-    maxBytes: parseCgroupLimit((await readText(join(base, "memory.max"))) ?? ""),
+    highBytes: parseCgroupLimit((await readText(join(/* turbopackIgnore: true */ base, "memory.high"))) ?? ""),
+    maxBytes: parseCgroupLimit((await readText(join(/* turbopackIgnore: true */ base, "memory.max"))) ?? ""),
   };
 }
 
 async function directorySize(dir: string): Promise<{ bytes: number; count: number } | null> {
   try {
-    const entries = await readdir(dir, { withFileTypes: true, recursive: true });
+    const entries = await readdir(/* turbopackIgnore: true */ dir, { withFileTypes: true, recursive: true });
     let bytes = 0;
     let count = 0;
     for (const entry of entries) {
       if (!entry.isFile()) continue;
-      const size = await fileSize(join(entry.parentPath, entry.name));
+      const size = await fileSize(join(/* turbopackIgnore: true */ entry.parentPath, entry.name));
       if (size === null) continue;
       bytes += size;
       count += 1;
@@ -101,17 +101,17 @@ async function directorySize(dir: string): Promise<{ bytes: number; count: numbe
 export async function getServerInfo(): Promise<ServerInfo> {
   const env = getEnv();
   const cwd = process.cwd();
-  const releaseDir = await realpath(cwd).catch(() => cwd);
-  const dbPath = resolve(cwd, env.DATABASE_URL.replace(/^file:/, ""));
-  const uploadDir = resolve(cwd, env.UPLOAD_DIR);
-  const backupStatusPath = join(dirname(uploadDir), "backup-status.json");
+  const releaseDir = await realpath(/* turbopackIgnore: true */ cwd).catch(() => cwd);
+  const dbPath = resolve(/* turbopackIgnore: true */ cwd, env.DATABASE_URL.replace(/^file:/, ""));
+  const uploadDir = resolve(/* turbopackIgnore: true */ cwd, env.UPLOAD_DIR);
+  const backupStatusPath = join(/* turbopackIgnore: true */ dirname(uploadDir), "backup-status.json");
 
   const [revisionText, meminfoText, cgroup, disk, dbBytes, walBytes, uploads, backupText] =
     await Promise.all([
-      readText(join(cwd, "REVISION")),
+      readText(join(/* turbopackIgnore: true */ cwd, "REVISION")),
       readText("/proc/meminfo"),
       cgroupMemory(),
-      statfs(dirname(dbPath))
+      statfs(/* turbopackIgnore: true */ dirname(dbPath))
         .then((info) => ({
           totalBytes: info.blocks * info.bsize,
           freeBytes: info.bavail * info.bsize,

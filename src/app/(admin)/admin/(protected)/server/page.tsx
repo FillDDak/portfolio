@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { BackupDownload } from "@/components/admin/backup-download";
 import { PageHeader, Panel } from "@/components/admin/page-header";
 import { RefreshButton } from "@/components/admin/refresh-button";
 import { requireAdmin } from "@/lib/auth/guard";
@@ -158,6 +159,7 @@ export default async function ServerInfoPage() {
                 : "백업 기록이 아직 없습니다. 서버의 백업 스크립트가 다음에 실행되면 여기에 표시됩니다."}
             </p>
           )}
+          <BackupDownload />
         </Panel>
       </div>
     </div>
