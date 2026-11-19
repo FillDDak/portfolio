@@ -4,7 +4,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { AlertCircleIcon, CheckCircleIcon } from "@/components/icons";
 import { getActiveMonitors } from "@/lib/data/public";
-import { displayUrl, formatDateTime } from "@/lib/format";
+import { formatDateTime } from "@/lib/format";
 import { getSharedStatusChecker, type CheckResult } from "@/lib/status/check";
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export default async function StatusPage() {
         상태일 수 있습니다.
       </p>
 
-      {/* 이름과 주소는 바로 보여 주고, 확인 결과는 요청 시점에 채운다. */}
+      {/* 이름과 설명은 바로 보여 주고, 확인 결과는 요청 시점에 채운다. */}
       <Suspense fallback={<StatusBoard monitors={monitors} results={null} />}>
         <CheckedStatusBoard monitors={monitors} />
       </Suspense>
@@ -87,32 +87,20 @@ function StatusBoard({
         {monitors.map((monitor, index) => {
           const result = results?.[index] ?? null;
           return (
-            <li
-              key={monitor.id}
-              className="flex items-center justify-between gap-4 px-5 py-4"
-            >
-              <div className="min-w-0 flex-1">
-                <h2 className="font-semibold">{monitor.name}</h2>
-                <a
-                  href={monitor.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="-my-2.5 inline-flex min-h-11 max-w-full items-center font-mono text-sm text-muted hover:text-foreground"
-                >
-                  <span className="truncate">{displayUrl(monitor.url)}</span>
-                </a>
-                {result?.reason ? <p className="text-sm text-danger">{result.reason}</p> : null}
-              </div>
-              {/* 좁은 화면에서는 상태 아래에 응답 시간을 둔다. */}
-              <div className="flex shrink-0 flex-col-reverse items-end gap-1 sm:flex-row sm:items-center sm:gap-3">
-                {result?.responseMs != null ? (
-                  <span className="font-mono text-sm text-muted">
-                    <span className="sr-only">응답 시간 </span>
-                    {result.responseMs.toLocaleString("ko-KR")}ms
-                  </span>
-                ) : null}
+            // 주소는 보여 주지 않는다. 이름과 설명으로 어떤 서비스인지 알리고, 오른쪽에 상태를 둔다.
+            <li key={monitor.id} className="px-5 py-4 md:px-6 md:py-5">
+              <div className="flex items-start justify-between gap-4">
+                <h2 className="min-w-0 pt-0.5 text-[1.0625rem] font-semibold">{monitor.name}</h2>
                 <StateBadge state={result?.state ?? null} />
               </div>
+              {monitor.description ? <p className="mt-1 text-muted">{monitor.description}</p> : null}
+              {result?.reason ? (
+                <p className="mt-1.5 text-sm font-medium text-danger">{result.reason}</p>
+              ) : result?.responseMs != null ? (
+                <p className="mt-1.5 text-sm text-muted">
+                  응답 시간 <span className="font-mono">{result.responseMs.toLocaleString("ko-KR")}ms</span>
+                </p>
+              ) : null}
             </li>
           );
         })}
@@ -126,7 +114,7 @@ function StatusBoard({
 }
 
 function StateBadge({ state }: { state: CheckResult["state"] | null }) {
-  const base = "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold";
+  const base = "inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold";
   if (state === "up") {
     return (
       <span className={`${base} bg-success-soft text-success`}>

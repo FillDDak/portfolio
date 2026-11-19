@@ -126,6 +126,7 @@ export const certificateSchema = z.object({
 
 export const monitorSchema = z.object({
   name: text("이름", 40),
+  description: optionalText("설명", 120),
   url: z
     .string()
     .trim()

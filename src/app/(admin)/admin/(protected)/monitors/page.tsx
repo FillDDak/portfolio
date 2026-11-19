@@ -8,7 +8,7 @@ import {
   SubmitButton,
 } from "@/components/admin/action-form";
 import { EmptyState, PageHeader, Panel } from "@/components/admin/page-header";
-import { fieldClass, labelClass } from "@/components/ui/field";
+import { fieldClass, helpClass, labelClass } from "@/components/ui/field";
 import { requireAdmin } from "@/lib/auth/guard";
 import { db } from "@/lib/db";
 
@@ -22,7 +22,7 @@ function MonitorFields({
   values,
 }: {
   idPrefix: string;
-  values?: { name: string; url: string; isActive: boolean };
+  values?: { name: string; description: string; url: string; isActive: boolean };
 }) {
   return (
     <>
@@ -62,7 +62,25 @@ function MonitorFields({
           <FieldError name="url" />
         </div>
       </div>
-      <label className="mt-3 flex min-h-11 w-fit items-center gap-2.5">
+      <div className="mt-3">
+        <label htmlFor={`${idPrefix}-description`} className={labelClass}>
+          설명 <span className="font-normal text-muted">(선택)</span>
+        </label>
+        <input
+          id={`${idPrefix}-description`}
+          name="description"
+          defaultValue={values?.description}
+          maxLength={120}
+          placeholder="예: 회원가입·로그인을 담당하는 인증 API 서버"
+          aria-describedby={`${idPrefix}-description-help`}
+          className={fieldClass}
+        />
+        <p id={`${idPrefix}-description-help`} className={helpClass}>
+          상태 페이지에서 이름 아래에 보입니다. 주소는 공개 페이지에 나오지 않습니다.
+        </p>
+        <FieldError name="description" />
+      </div>
+      <label className="mt-2 flex min-h-11 w-fit items-center gap-2.5">
         <input
           type="checkbox"
           name="isActive"

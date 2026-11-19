@@ -349,6 +349,7 @@ export async function saveMonitor(formData: FormData): Promise<ActionResult> {
   await requireAdmin();
   const parsed = monitorSchema.safeParse({
     name: formText(formData, "name"),
+    description: formText(formData, "description"),
     url: formText(formData, "url"),
     isActive: formData.get("isActive") === "on",
   });

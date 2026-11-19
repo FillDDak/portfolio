@@ -185,5 +185,6 @@ export async function getActiveMonitors() {
     where: { isActive: true },
     orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
   });
-  return monitors.map(({ id, name, url }) => ({ id, name, url }));
+  // url 은 서버에서 상태를 확인할 때만 쓰고 화면에는 그리지 않는다.
+  return monitors.map(({ id, name, description, url }) => ({ id, name, description, url }));
 }
