@@ -4,6 +4,7 @@ import { ContentStatsPanel } from "@/components/admin/content-stats";
 import { DailyChart } from "@/components/admin/daily-chart";
 import { PageHeader, Panel } from "@/components/admin/page-header";
 import { RealtimeCount } from "@/components/admin/realtime-count";
+import { RefreshButton } from "@/components/admin/refresh-button";
 import { buttonClass } from "@/components/ui/button";
 import { fieldClass } from "@/components/ui/field";
 import { getContentStats, getDailyTrend, getProjectViews, getSiteTotals } from "@/lib/analytics/stats";
@@ -38,6 +39,7 @@ export default async function AdminDashboardPage({ searchParams }: PageProps<"/a
       <PageHeader
         title="대시보드"
         description="조회수와 방문자 수는 이 화면에서만 볼 수 있고 공개 페이지에는 표시되지 않습니다."
+        action={<RefreshButton />}
       />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

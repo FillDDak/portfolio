@@ -100,6 +100,13 @@ export const CopyIcon = (props: IconProps) => (
   </Base>
 );
 
+export const RefreshIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="M20 12a8 8 0 1 1-2.34-5.66" />
+    <path d="M20 4v4.5h-4.5" />
+  </Base>
+);
+
 export const CheckIcon = (props: IconProps) => (
   <Base {...props}>
     <path d="m5 12.5 4.5 4.5L19 7.5" />

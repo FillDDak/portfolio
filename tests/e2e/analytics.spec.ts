@@ -85,3 +85,22 @@ test.describe("조회수 기록", () => {
     await admin.context().close();
   });
 });
+
+test.describe("대시보드 새로고침 버튼", () => {
+  test("누르면 페이지를 다시 열지 않고 최신 조회수로 바뀐다", async ({ page, browser }, testInfo) => {
+    const admin = await (await newVisitor(browser, testInfo, "admin")).newPage();
+    await loginAsAdmin(admin);
+    const today = admin.locator("main").getByText("오늘 조회").locator("xpath=..").locator("p").nth(1);
+    const before = Number((await today.innerText()).replace(/\D/g, ""));
+
+    // 화면을 다시 열면 남지 않는 표시를 붙여 두고, 버튼을 누른 뒤에도 남아 있는지 본다.
+    await admin.evaluate(() => document.body.setAttribute("data-kept", "1"));
+    await visit(page, PROJECT_PATH);
+    expect(Number((await today.innerText()).replace(/\D/g, ""))).toBe(before);
+
+    await admin.getByRole("button", { name: "새로고침" }).click();
+    await expect(today).toContainText(String(before + 1));
+    await expect(admin.locator("body")).toHaveAttribute("data-kept", "1");
+    await admin.context().close();
+  });
+});
