@@ -2,7 +2,7 @@ import { connection } from "next/server";
 import { getRealtimeTracker } from "@/lib/analytics/realtime";
 import { requireAdminForApi, UnauthorizedError } from "@/lib/auth/guard";
 
-/** 실시간 접속자 수: 최근 60초 안에 하트비트를 보낸 세션 수. 대시보드가 10초마다 호출한다. */
+/** 실시간 접속자 수: 최근 35초 안에 하트비트를 보낸 세션 수. 대시보드가 2초마다 호출한다. */
 export async function GET() {
   // 빌드할 때 미리 실행되지 않고 요청이 올 때만 실행되게 한다.
   await connection();

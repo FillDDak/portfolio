@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { expect, findMails, test } from "./fixtures";
+import { expect, findMails, loginAsAdmin, newVisitor, test } from "./fixtures";
 
 async function fillContact(page: Page, values: { subject: string; body?: string }) {
   await page.locator("#contact-name").fill("김채용");
@@ -71,5 +71,36 @@ test.describe("문의 메일", () => {
     await expect(page.locator("#contact-subject")).toHaveValue(`${token} 4번째`);
 
     await expect.poll(() => findMails(token).length).toBe(3);
+  });
+});
+
+test.describe("관리자 화면 새 문의 반영", () => {
+  test("새 문의가 오면 새로고침 없이 배지, 대시보드 숫자, 문의 목록이 바뀐다", async ({ browser }, testInfo) => {
+    const token = `E2E-live-${testInfo.project.name}-${Date.now()}`;
+    const admin = await (await newVisitor(browser, testInfo, "admin")).newPage();
+    await loginAsAdmin(admin);
+
+    const tile = admin.getByRole("link", { name: /받은 문의 보기/ });
+    const before = Number((await tile.locator("p").nth(1).innerText()).replace(/\D/g, ""));
+
+    const send = async (label: string, subject: string) => {
+      const visitor = await (await newVisitor(browser, testInfo, label)).newPage();
+      await visitor.goto("/#contact");
+      await fillContact(visitor, { subject });
+      await visitor.getByRole("button", { name: "보내기" }).click();
+      await expect(visitor.getByText("문의가 전달되었습니다.")).toBeVisible();
+      await visitor.context().close();
+    };
+
+    await send("visitor-1", `대시보드 ${token}`);
+    // 2초마다 확인하므로 몇 초 안에 바뀌어야 한다.
+    await expect(tile.locator("p").nth(1)).toContainText(String(before + 1), { timeout: 8_000 });
+    await expect(admin.getByRole("link", { name: new RegExp(`^받은 문의.*읽지 않은 문의 ${before + 1}건`) }).first()).toBeAttached();
+
+    await admin.goto("/admin/messages");
+    await send("visitor-2", `목록 ${token}`);
+    await expect(admin.getByRole("heading", { name: `목록 ${token}` })).toBeVisible({ timeout: 8_000 });
+
+    await admin.context().close();
   });
 });

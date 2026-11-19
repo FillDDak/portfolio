@@ -2,9 +2,11 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { logoutAction } from "@/actions/auth";
 import { AdminNav, type AdminNavItem } from "@/components/admin/admin-nav";
+import { MessageWatcher } from "@/components/admin/message-watcher";
 import { buttonClass } from "@/components/ui/button";
 import { getAdminSession, requireAdmin } from "@/lib/auth/guard";
 import { db } from "@/lib/db";
+import { getMessageSummary, messageSignature } from "@/lib/data/message-summary";
 
 // 관리자 화면은 로딩 표시 없이, 데이터를 다 받은 뒤 완성된 화면으로 바로 바꾼다.
 // 로딩 표시를 먼저 띄우면 React 가 깜빡임을 막으려고 내용을 최소 약 0.3초 늦게 보여 주는데,
@@ -64,8 +66,18 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           <AdminGate>{children}</AdminGate>
         </main>
       </div>
+      <Suspense fallback={null}>
+        <MessageWatcherSlot />
+      </Suspense>
     </div>
   );
+}
+
+/** 새 문의가 오면 새로고침 없이 배지, 대시보드 숫자, 문의 목록이 바뀌게 한다. */
+async function MessageWatcherSlot() {
+  const session = await getAdminSession();
+  if (!session) return null;
+  return <MessageWatcher signature={messageSignature(await getMessageSummary())} />;
 }
 
 function AdminNavSlot() {

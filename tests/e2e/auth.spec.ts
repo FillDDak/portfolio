@@ -7,6 +7,7 @@ test.describe("관리자 로그인", () => {
 
     const api = await request.get("/api/admin/realtime");
     expect(api.status()).toBe(401);
+    expect((await request.get("/api/admin/messages/summary")).status()).toBe(401);
   });
 
   test("로그인하면 대시보드가 보이고, 로그아웃하면 다시 막힌다", async ({ page }) => {
