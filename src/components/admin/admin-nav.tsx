@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export type AdminNavItem = { href: string; label: string };
+/** dividerAfter: 이 메뉴 다음에 구분선을 넣어 메뉴 묶음을 나눈다. */
+export type AdminNavItem = { href: string; label: string; dividerAfter?: boolean };
 
 /** 메뉴 옆에 붙이는 숫자 배지. 키는 메뉴 주소, 값은 개수와 화면 낭독기용 설명. */
 export type AdminNavBadges = Record<string, { count: number; label: string }>;
@@ -43,7 +44,20 @@ export function AdminNav({ items, badges = {} }: { items: AdminNavItem[]; badges
               </Link>
             </li>
           );
-        })}
+        }).flatMap((node, index) =>
+          items[index]?.dividerAfter
+            ? [
+                node,
+                // 모바일(가로 메뉴)에서는 세로선, PC(세로 메뉴)에서는 가로선
+                <li
+                  key={`${items[index]?.href}-divider`}
+                  role="separator"
+                  aria-hidden="true"
+                  className="my-2 w-px shrink-0 self-stretch bg-line lg:mx-2 lg:my-1.5 lg:h-px lg:w-auto"
+                />,
+              ]
+            : [node],
+        )}
       </ul>
     </nav>
   );
