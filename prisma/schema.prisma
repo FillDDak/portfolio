@@ -107,7 +107,7 @@ model Certificate {
   sortOrder  Int    @default(0)
 }
 
-/// 상태 페이지에서 감시할 URL. 공개 페이지에는 주소를 글자로 보여 주지 않고 이름의 링크로만 쓴다.
+/// 상태 페이지에서 감시할 URL. 공개 페이지에는 주소를 글자로 보여 주지 않고 '사이트 방문' 버튼의 링크로만 쓴다.
 model Monitor {
   id          Int     @id @default(autoincrement())
   name        String

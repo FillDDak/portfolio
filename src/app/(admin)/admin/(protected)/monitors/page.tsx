@@ -76,7 +76,7 @@ function MonitorFields({
           className={fieldClass}
         />
         <p id={`${idPrefix}-description-help`} className={helpClass}>
-          상태 페이지에서 이름 아래에 보입니다. 주소는 글자로 보이지 않고, 이름을 누르면 그 주소로 이동합니다.
+          상태 페이지에서 이름 아래에 보입니다. 주소는 글자로 보이지 않고, ‘사이트 방문’ 버튼을 누르면 그 주소로 이동합니다.
         </p>
         <FieldError name="description" />
       </div>
