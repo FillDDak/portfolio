@@ -51,7 +51,7 @@ export default async function ProfilePage() {
               자기소개
             </label>
             <textarea id="bio" name="bio" defaultValue={profile.bio} rows={5} maxLength={600} className={textareaClass} />
-            <p className={helpClass}>2~3문장을 권장합니다. 첫 화면에서 스크롤 없이 버튼까지 보이려면 짧을수록 좋습니다.</p>
+            <p className={helpClass}>2~3문장을 권장합니다. 첫 화면에서 스크롤 없이 버튼까지 보이려면 짧을수록 좋습니다. 줄을 바꾸면 화면에서도 그 자리에서 줄이 바뀝니다.</p>
             <FieldError name="bio" />
           </div>
           <div className="mt-4">

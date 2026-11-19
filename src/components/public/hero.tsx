@@ -28,7 +28,10 @@ export function Hero({ profile }: { profile: PublicProfile }) {
         </p>
 
         {profile.bio ? (
-          <p className="mt-4 max-w-[42rem] text-muted md:mt-6 md:text-[1.0625rem]">{profile.bio}</p>
+          // 관리자 화면에서 입력한 줄바꿈을 그대로 보여 준다(연속된 공백은 하나로 줄인다).
+          <p className="mt-4 max-w-[42rem] whitespace-pre-line text-muted md:mt-6 md:text-[1.0625rem]">
+            {profile.bio}
+          </p>
         ) : null}
 
         {profile.coreStack.length > 0 ? (
