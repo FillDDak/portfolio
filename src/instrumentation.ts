@@ -39,6 +39,14 @@ export async function register() {
     } catch (error) {
       console.error("[stats] 조회 기록 정리에 실패했습니다:", error);
     }
+    // 로그인 기록은 90일 동안 보관한다.
+    try {
+      const { purgeOldLoginAttempts } = await import("@/lib/login-history");
+      const removed = await purgeOldLoginAttempts();
+      if (removed > 0) console.log(`[auth] 보관 기간이 지난 로그인 기록 ${removed}건을 삭제했습니다.`);
+    } catch (error) {
+      console.error("[auth] 로그인 기록 정리에 실패했습니다:", error);
+    }
   };
   setTimeout(purge, 60_000).unref();
   setInterval(purge, 24 * 60 * 60 * 1000).unref();

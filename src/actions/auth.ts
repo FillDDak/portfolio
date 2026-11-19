@@ -2,6 +2,7 @@
 
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
 import { getLoginGuard } from "@/lib/auth/login-guard";
 import { isAdminConfigured, verifyAdminLogin } from "@/lib/auth/password";
@@ -11,6 +12,7 @@ import {
   sessionCookieOptions,
 } from "@/lib/auth/session";
 import { getEnv } from "@/lib/env";
+import { recordLoginAttempt, type LoginResult } from "@/lib/login-history";
 import { getClientIp } from "@/lib/request-ip";
 
 export type LoginState = { error: string | null };
@@ -34,8 +36,12 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
     return { error: "관리자 계정이 설정되지 않았습니다. 서버 환경 변수를 확인해 주세요." };
   }
 
-  const ip = getClientIp(await headers(), env.TRUSTED_PROXY_HOPS);
+  const requestHeaders = await headers();
+  const ip = getClientIp(requestHeaders, env.TRUSTED_PROXY_HOPS);
+  const userAgent = requestHeaders.get("user-agent") ?? "";
   const guard = getLoginGuard();
+  // 기록과 위치 조회는 응답을 보낸 뒤에 한다. 잠긴 뒤의 반복 시도는 기록하지 않는다(잠긴 순간 한 번만 남긴다).
+  const record = (result: LoginResult) => after(() => recordLoginAttempt({ result, ip, userAgent }));
 
   const gate = guard.check(ip);
   if (!gate.allowed) {
@@ -54,6 +60,7 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
   if (!ok) {
     const failure = guard.recordFailure(ip);
     console.warn(`[auth] 로그인 실패 (남은 시도 ${failure.remaining}회)`);
+    record(failure.remaining <= 0 ? "LOCKED" : "FAILURE");
     if (failure.remaining <= 0) {
       return { error: lockedMessage(failure.retryAfterSeconds) };
     }
@@ -64,6 +71,7 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
   }
 
   guard.recordSuccess(ip);
+  record("SUCCESS");
   const token = await createSessionToken(parsed.data.username);
   (await cookies()).set(SESSION_COOKIE_NAME, token, sessionCookieOptions);
   redirect("/admin");

@@ -180,3 +180,23 @@ model EventStat {
   @@unique([date, event, target])
   @@index([event, date])
 }
+
+/// 관리자 로그인 기록(성공, 실패, 잠김). 보안 확인용이라 IP 원문을 저장하고, 보관 기간(90일)이 지나면 삭제한다.
+model LoginAttempt {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  /// SUCCESS | FAILURE | LOCKED
+  result    String
+  ip        String
+  userAgent String   @default("")
+  /// 위치 조회 결과. 조회 전이거나 실패하면 빈 값
+  country   String   @default("")
+  region    String   @default("")
+  city      String   @default("")
+  isp       String   @default("")
+  /// PENDING | OK | PRIVATE(내부 주소라 조회 안 함) | FAILED
+  geoStatus String   @default("PENDING")
+
+  @@index([createdAt])
+  @@index([ip, createdAt])
+}
