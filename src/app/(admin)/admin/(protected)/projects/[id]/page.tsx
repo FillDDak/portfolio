@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/admin/page-header";
 import { ProjectForm, type ProjectFormValues } from "@/components/admin/project-form";
+import { buttonClass } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/auth/guard";
 import { db } from "@/lib/db";
 
@@ -51,7 +52,20 @@ export default async function EditProjectPage({ params }: PageProps<"/admin/proj
       <Link href="/admin/projects" className="mb-3 inline-flex min-h-11 items-center text-muted hover:text-foreground">
         ← 프로젝트 목록
       </Link>
-      <PageHeader title="프로젝트 수정" />
+      <PageHeader
+        title="프로젝트 수정"
+        description="미리보기는 공개 페이지와 같은 화면을 비공개 상태에서도 보여 줍니다. 저장한 내용 기준이라, 고친 뒤에는 먼저 저장하세요."
+        action={
+          <a
+            href={`/admin/preview/projects/${project.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={buttonClass("secondary")}
+          >
+            미리보기<span className="sr-only"> (새 탭에서 열림)</span>
+          </a>
+        }
+      />
       {/* 다른 프로젝트로 이동하면 폼 상태를 새로 만든다. */}
       <ProjectForm key={project.id} projectId={project.id} initialValues={values} />
     </div>

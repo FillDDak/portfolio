@@ -77,9 +77,19 @@ export default async function ProjectsPage() {
                     <span className="font-mono">/projects/{project.slug}</span>
                   </p>
                 </div>
-                <Link href={`/admin/projects/${project.id}`} className={buttonClass("secondary")}>
-                  수정
-                </Link>
+                <div className="flex gap-2">
+                  <a
+                    href={`/admin/preview/projects/${project.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={buttonClass("ghost")}
+                  >
+                    미리보기<span className="sr-only">: {project.title} (새 탭에서 열림)</span>
+                  </a>
+                  <Link href={`/admin/projects/${project.id}`} className={buttonClass("secondary")}>
+                    수정
+                  </Link>
+                </div>
               </div>
 
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">

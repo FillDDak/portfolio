@@ -122,12 +122,23 @@ export async function getPublishedProject(slug: string) {
   cacheTag(CACHE_TAGS.projects);
   const project = await db.project.findFirst({
     where: { slug, isPublished: true },
-    include: {
-      tags: { orderBy: { sortOrder: "asc" } },
-      images: { orderBy: { sortOrder: "asc" } },
-    },
+    include: PROJECT_DETAIL_INCLUDE,
   });
-  if (!project) return null;
+  return project ? toProjectDetail(project) : null;
+}
+
+/** 프로젝트 상세 화면에 필요한 태그·이미지(정렬 순서대로) */
+export const PROJECT_DETAIL_INCLUDE = {
+  tags: { orderBy: { sortOrder: "asc" } },
+  images: { orderBy: { sortOrder: "asc" } },
+} as const;
+
+type ProjectWithDetail = NonNullable<
+  Awaited<ReturnType<typeof db.project.findFirst<{ include: typeof PROJECT_DETAIL_INCLUDE }>>>
+>;
+
+/** DB 의 프로젝트를 상세 화면에서 쓰는 형태로 바꾼다. 공개 페이지와 관리자 미리보기가 함께 쓴다. */
+export function toProjectDetail(project: ProjectWithDetail) {
   return {
     id: project.id,
     title: project.title,

@@ -66,6 +66,24 @@ test.describe("프로젝트 수정", () => {
     const sitemap = await visitor.request.get("/sitemap.xml");
     expect(await sitemap.text()).not.toContain(`/projects/${target.slug}`);
 
+    // 비공개여도 관리자는 미리보기로 공개 페이지와 같은 화면을 볼 수 있다(새 탭).
+    const opening = page.context().waitForEvent("page");
+    await page.getByRole("link", { name: /^미리보기/ }).click();
+    const preview = await opening;
+    await expect(preview).toHaveURL(/\/admin\/preview\/projects\/\d+$/);
+    await expect(preview.getByRole("heading", { level: 1, name: target.title })).toBeVisible();
+    await expect(preview.getByText("비공개 · 방문자에게는 보이지 않습니다")).toBeVisible();
+    // 모바일에서도 가로로 넘치지 않는다.
+    expect(
+      await preview.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth),
+    ).toBe(true);
+    const previewUrl = preview.url();
+    await preview.close();
+
+    // 방문자는 미리보기 주소로 들어와도 로그인 화면으로 간다.
+    await visitor.goto(previewUrl);
+    await expect(visitor).toHaveURL(/\/admin\/login$/);
+
     // 다시 공개로 돌려놓는다.
     await published.check();
     await page.getByRole("button", { name: "저장", exact: true }).click();
