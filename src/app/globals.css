@@ -5,11 +5,13 @@
  * 코드 느낌의 글자(헤더의 도메인, 스택 태그, 섹션 번호, 코드 블록)에 쓰는 IBM Plex Mono.
  * 영문·숫자만 필요해서 라틴 문자 파일을 실제로 쓰는 굵기(400, 500, 600)만 셀프 호스팅한다(각 15KB).
  * 한글은 뒤따르는 글꼴로 표시된다.
+ * 파일이 작고 layout.tsx 에서 미리 요청하므로, 대체 글꼴로 먼저 그렸다가 바꾸지 않고(swap)
+ * 도착할 때까지 잠깐 기다린다(block, 최대 3초). 글자 모양이 바뀌며 움직이는 일이 없다.
  */
 @font-face {
   font-family: "IBM Plex Mono";
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   font-weight: 400;
   src: url(/fonts/ibm-plex-mono/ibm-plex-mono-latin-400-normal.woff2) format("woff2");
   unicode-range:
@@ -19,7 +21,7 @@
 @font-face {
   font-family: "IBM Plex Mono";
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   font-weight: 500;
   src: url(/fonts/ibm-plex-mono/ibm-plex-mono-latin-500-normal.woff2) format("woff2");
   unicode-range:
@@ -29,7 +31,7 @@
 @font-face {
   font-family: "IBM Plex Mono";
   font-style: normal;
-  font-display: swap;
+  font-display: block;
   font-weight: 600;
   src: url(/fonts/ibm-plex-mono/ibm-plex-mono-latin-600-normal.woff2) format("woff2");
   unicode-range:
