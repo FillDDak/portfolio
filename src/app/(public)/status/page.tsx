@@ -107,8 +107,11 @@ function StatusBoard({
                 </a>
               </div>
               {monitor.description || result?.responseMs != null ? (
-                <p className="flex flex-wrap gap-x-3 text-[0.9375rem] text-muted">
+                <p className="flex flex-wrap items-center gap-x-3 text-[0.9375rem] text-muted">
                   {monitor.description ? <span>{monitor.description}</span> : null}
+                  {monitor.description && !result?.reason && result?.responseMs != null ? (
+                    <span aria-hidden="true" className="h-3.5 w-px bg-line-strong" />
+                  ) : null}
                   {!result?.reason && result?.responseMs != null ? (
                     <span className="text-sm leading-[inherit]">
                       응답 <span className="font-mono">{result.responseMs.toLocaleString("ko-KR")}ms</span>
