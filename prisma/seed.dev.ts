@@ -30,6 +30,7 @@ async function clear() {
   await db.project.deleteMany();
   await db.skill.deleteMany();
   await db.certificate.deleteMany();
+  await db.experience.deleteMany();
   await db.profile.update({ where: { id: 1 }, data: { coreStack: "", notionUrl: "" } });
 }
 
@@ -141,6 +142,37 @@ async function fill() {
       await db.skill.create({ data: { categoryId: category.id, name, level, sortOrder: index } });
     }
   }
+
+  const coupon = await db.project.findUnique({ where: { slug: "example-coupon" }, select: { id: true } });
+  await db.experience.createMany({
+    data: [
+      {
+        kind: "EDUCATION",
+        title: "[예시] ○○대학교",
+        subtitle: "컴퓨터공학과 학사 졸업",
+        startDate: "2020-03",
+        endDate: "2026-02",
+      },
+      {
+        kind: "TRAINING",
+        title: "[예시] ○○ 백엔드 부트캠프",
+        subtitle: "Java 백엔드 개발자 과정 (960시간)",
+        startDate: "2025-03",
+        endDate: "2025-09",
+        description: "Spring Boot·JPA 기반 팀 프로젝트 3회, 팀장 1회\n코드 리뷰와 테스트 작성을 매주 진행",
+        projectId: coupon?.id ?? null,
+      },
+      {
+        kind: "ACTIVITY",
+        title: "[예시] 백엔드 스터디",
+        subtitle: "운영진",
+        startDate: "2025-10",
+        endDate: "",
+        description: "매주 대규모 시스템 설계 사례를 읽고 발표",
+      },
+      { kind: "AWARD", title: "[예시] ○○ 해커톤 우수상", subtitle: "○○협회", startDate: "2025-08" },
+    ],
+  });
 
   await db.certificate.createMany({
     data: [

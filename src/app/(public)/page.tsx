@@ -4,12 +4,14 @@ import { ContactForm } from "@/components/public/contact-form";
 import { Hero } from "@/components/public/hero";
 import {
   CertificatesSection,
+  ExperienceSection,
   ProjectsSection,
   SkillsSection,
 } from "@/components/public/home-sections";
 import { Section } from "@/components/public/section";
 import {
   getCertificates,
+  getExperienceGroups,
   getProfile,
   getPublishedProjects,
   getSkillGroups,
@@ -18,9 +20,10 @@ import {
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default async function HomePage() {
-  const [profile, projects, skillGroups, certificates] = await Promise.all([
+  const [profile, projects, experienceGroups, skillGroups, certificates] = await Promise.all([
     getProfile(),
     getPublishedProjects(),
+    getExperienceGroups(),
     getSkillGroups(),
     getCertificates(),
   ]);
@@ -38,6 +41,7 @@ export default async function HomePage() {
       />
       <Hero profile={profile} />
       {projects.length > 0 ? <ProjectsSection index={++index} projects={projects} /> : null}
+      {experienceGroups.length > 0 ? <ExperienceSection index={++index} groups={experienceGroups} /> : null}
       {skillGroups.length > 0 ? <SkillsSection index={++index} groups={skillGroups} /> : null}
       {certificates.length > 0 ? (
         <CertificatesSection index={++index} certificates={certificates} />

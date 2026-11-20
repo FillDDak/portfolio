@@ -9,6 +9,7 @@ import { moveInList, type Direction } from "@/lib/reorder";
 import { deleteStored } from "@/lib/upload/storage";
 import {
   certificateSchema,
+  experienceSchema,
   flattenErrors,
   monitorSchema,
   profileSchema,
@@ -283,6 +284,49 @@ export async function moveSkill(formData: FormData): Promise<ActionResult> {
     return ok();
   } catch (error) {
     return unexpected(error, "순서를 변경");
+  }
+}
+
+/* ── 경험 ──────────────────────────────────────────────── */
+
+export async function saveExperience(formData: FormData): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = experienceSchema.safeParse({
+    kind: formText(formData, "kind"),
+    title: formText(formData, "title"),
+    subtitle: formText(formData, "subtitle"),
+    startDate: formText(formData, "startDate"),
+    endDate: formText(formData, "endDate"),
+    description: formText(formData, "description"),
+    projectId: formText(formData, "projectId"),
+  });
+  if (!parsed.success) return invalid(flattenErrors(parsed.error));
+  const id = formData.get("id") ? formId(formData) : null;
+  try {
+    const { projectId } = parsed.data;
+    if (projectId !== null && !(await db.project.findUnique({ where: { id: projectId }, select: { id: true } }))) {
+      return invalid({ projectId: "연결할 프로젝트를 찾을 수 없습니다." });
+    }
+    if (id === null) {
+      await db.experience.create({ data: parsed.data });
+    } else {
+      await db.experience.update({ where: { id }, data: parsed.data });
+    }
+    updateTag(CACHE_TAGS.experiences);
+    return ok(id === null ? "경험을 추가했습니다." : "저장했습니다.");
+  } catch (error) {
+    return unexpected(error, "저장");
+  }
+}
+
+export async function deleteExperience(formData: FormData): Promise<ActionResult> {
+  await requireAdmin();
+  try {
+    await db.experience.delete({ where: { id: formId(formData) } });
+    updateTag(CACHE_TAGS.experiences);
+    return ok("삭제했습니다.");
+  } catch (error) {
+    return unexpected(error, "삭제");
   }
 }
 

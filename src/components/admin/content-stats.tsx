@@ -6,6 +6,7 @@ const percent = (part: number, whole: number) => (whole > 0 ? `${Math.round((par
 
 const SECTION_LABELS: Record<ContentStats["sections"][number]["id"], string> = {
   projects: "프로젝트",
+  experience: "경험",
   skills: "스킬",
   certificates: "자격증",
   contact: "문의",

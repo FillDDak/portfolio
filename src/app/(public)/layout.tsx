@@ -8,6 +8,7 @@ import { SiteHeader, type NavItem } from "@/components/public/site-header";
 import {
   getActiveMonitors,
   getCertificates,
+  getExperienceGroups,
   getProfile,
   getPublishedProjects,
   getSkillGroups,
@@ -34,9 +35,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PublicLayout({ children }: LayoutProps<"/">) {
-  const [profile, projects, skillGroups, certificates, monitors] = await Promise.all([
+  const [profile, projects, experienceGroups, skillGroups, certificates, monitors] = await Promise.all([
     getProfile(),
     getPublishedProjects(),
+    getExperienceGroups(),
     getSkillGroups(),
     getCertificates(),
     getActiveMonitors(),
@@ -46,6 +48,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
   const items: NavItem[] = [
     { href: "/#about", label: "소개" },
     projects.length > 0 && { href: "/#projects", label: "프로젝트" },
+    experienceGroups.length > 0 && { href: "/#experience", label: "경험" },
     skillGroups.length > 0 && { href: "/#skills", label: "스킬" },
     certificates.length > 0 && { href: "/#certificates", label: "자격증" },
     // 문의 섹션은 헤더의 '문의하기' 버튼이 맡으므로 메뉴에 따로 넣지 않는다.

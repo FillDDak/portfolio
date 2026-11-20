@@ -1,5 +1,6 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
+import { EXPERIENCE_KINDS, type ExperienceKind } from "@/lib/validation/content";
 
 /**
  * 공개 페이지에서 쓰는 조회 함수.
@@ -10,6 +11,7 @@ export const CACHE_TAGS = {
   projects: "projects",
   skills: "skills",
   certificates: "certificates",
+  experiences: "experiences",
   monitors: "monitors",
 } as const;
 
@@ -101,6 +103,42 @@ export async function getCertificates() {
 }
 
 export type PublicCertificate = Awaited<ReturnType<typeof getCertificates>>[number];
+
+/**
+ * 경험을 종류별로 묶는다. 묶음은 학력 → 교육 → 활동 → 수상 순서이고,
+ * 각 묶음 안에서는 진행 중인 것, 최근에 끝난 것, 최근에 시작한 것 순서다.
+ * 연결한 프로젝트는 공개 중일 때만 링크로 쓴다.
+ */
+export async function getExperienceGroups() {
+  "use cache";
+  cacheLife("max");
+  cacheTag(CACHE_TAGS.experiences, CACHE_TAGS.projects);
+  const rows = await db.experience.findMany({
+    include: { project: { select: { slug: true, title: true, isPublished: true } } },
+  });
+  const latest = (row: { startDate: string; endDate: string }) => row.endDate || "9999-99";
+  rows.sort(
+    (a, b) =>
+      latest(b).localeCompare(latest(a)) || b.startDate.localeCompare(a.startDate) || a.id - b.id,
+  );
+  return EXPERIENCE_KINDS.map((kind) => ({
+    kind,
+    items: rows
+      .filter((row) => row.kind === kind)
+      .map((row) => ({
+        id: row.id,
+        kind: row.kind as ExperienceKind,
+        title: row.title,
+        subtitle: row.subtitle,
+        startDate: row.startDate,
+        endDate: row.endDate,
+        description: row.description,
+        project: row.project?.isPublished ? { slug: row.project.slug, title: row.project.title } : null,
+      })),
+  })).filter((group) => group.items.length > 0);
+}
+
+export type PublicExperienceGroup = Awaited<ReturnType<typeof getExperienceGroups>>[number];
 
 function splitList(value: string): string[] {
   return value

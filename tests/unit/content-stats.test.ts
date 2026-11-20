@@ -97,6 +97,7 @@ describe("콘텐츠 반응 집계", () => {
     expect(result.home).toBe(3);
     expect(result.sections).toEqual([
       { id: "projects", count: 2 },
+      { id: "experience", count: 0 },
       { id: "skills", count: 0 },
       { id: "certificates", count: 0 },
       { id: "contact", count: 0 },

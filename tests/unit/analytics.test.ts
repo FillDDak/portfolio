@@ -248,6 +248,7 @@ describe("parseContentEvent (콘텐츠 반응 이벤트 검사)", () => {
     expect(parseContentEvent("home", "")).toEqual({ event: "home", target: "" });
     expect(parseContentEvent("section", "projects")).toEqual({ event: "section", target: "projects" });
     expect(parseContentEvent("section", "contact")).toEqual({ event: "section", target: "contact" });
+    expect(parseContentEvent("section", "experience")).toEqual({ event: "section", target: "experience" });
     expect(parseContentEvent("card", "12")).toEqual({ event: "card", target: "12", projectId: 12 });
     expect(parseContentEvent("link", "profile:github")).toEqual({ event: "link", target: "profile:github" });
     expect(parseContentEvent("link", "project:3:docs")).toEqual({

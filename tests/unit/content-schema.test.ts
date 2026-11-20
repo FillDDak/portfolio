@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { moveInList } from "@/lib/reorder";
 import {
   certificateSchema,
+  experienceSchema,
   flattenErrors,
   monitorSchema,
   profileSchema,
@@ -104,6 +105,31 @@ describe("그 밖의 스키마", () => {
   it("monitorSchema: http(s) 주소만", () => {
     expect(monitorSchema.safeParse({ name: "przo", url: "https://przo.kr" }).success).toBe(true);
     expect(monitorSchema.safeParse({ name: "x", url: "file:///etc/passwd" }).success).toBe(false);
+  });
+});
+
+describe("experienceSchema", () => {
+  const base = { kind: "TRAINING", title: "백엔드 부트캠프", startDate: "2025-03", endDate: "2025-09" };
+
+  it("선택 항목은 비워 둘 수 있고, 관련 프로젝트는 숫자 id 또는 없음", () => {
+    const parsed = experienceSchema.parse({ ...base, projectId: "" });
+    expect(parsed).toMatchObject({ subtitle: "", description: "", projectId: null });
+    expect(experienceSchema.parse({ ...base, projectId: "3" }).projectId).toBe(3);
+  });
+
+  it("수상은 종료 월을 저장하지 않는다", () => {
+    expect(experienceSchema.parse({ ...base, kind: "AWARD" }).endDate).toBe("");
+  });
+
+  it("종류, 기간 순서, 형식을 검사한다", () => {
+    const errors = (input: Record<string, unknown>) => {
+      const result = experienceSchema.safeParse(input);
+      return result.success ? {} : flattenErrors(result.error);
+    };
+    expect(errors({ ...base, kind: "JOB" })).toHaveProperty("kind");
+    expect(errors({ ...base, endDate: "2025-01" })).toHaveProperty("endDate");
+    expect(errors({ ...base, startDate: "2025-13" })).toHaveProperty("startDate");
+    expect(errors({ ...base, description: "가".repeat(301) })).toHaveProperty("description");
   });
 });
 

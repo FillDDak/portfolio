@@ -60,8 +60,9 @@ model Project {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  tags   ProjectTag[]
-  images ProjectImage[]
+  tags        ProjectTag[]
+  images      ProjectImage[]
+  experiences Experience[]
 
   @@index([isPublished, isFeatured, sortOrder])
 }
@@ -113,6 +114,27 @@ model Certificate {
   /// YYYY-MM-DD
   acquiredAt String
   sortOrder  Int    @default(0)
+}
+
+/// 경험(학력·교육·활동·수상). 공개 페이지에서는 종류별로 묶고, 각 묶음 안에서는 최근 것부터 보여 준다.
+model Experience {
+  id          Int      @id @default(autoincrement())
+  /// EDUCATION(학력) | TRAINING(교육) | ACTIVITY(활동) | AWARD(수상)
+  kind        String
+  /// 학교, 교육기관, 활동, 상 이름
+  title       String
+  /// 전공·과정명·역할 등. 없으면 빈 문자열
+  subtitle    String   @default("")
+  /// YYYY-MM. 수상은 받은 달
+  startDate   String
+  /// YYYY-MM. 비어 있으면 진행 중(수상은 쓰지 않음)
+  endDate     String   @default("")
+  description String   @default("")
+  /// 이 경험에서 만든 프로젝트. 프로젝트를 지우면 연결만 끊긴다.
+  projectId   Int?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([kind])
 }
 
 /// 상태 페이지에서 감시할 URL. 공개 페이지에는 주소를 글자로 보여 주지 않고 '방문' 버튼의 링크로만 쓴다.

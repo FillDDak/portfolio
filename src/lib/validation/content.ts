@@ -124,6 +124,38 @@ export const certificateSchema = z.object({
     }, "취득일이 올바른 날짜가 아닙니다."),
 });
 
+/** 경험 종류. 공개 페이지에서 이 순서로 묶어 보여 준다(채용 담당자가 먼저 확인하는 순). */
+export const EXPERIENCE_KINDS = ["EDUCATION", "TRAINING", "ACTIVITY", "AWARD"] as const;
+export type ExperienceKind = (typeof EXPERIENCE_KINDS)[number];
+export const EXPERIENCE_KIND_LABEL: Record<ExperienceKind, string> = {
+  EDUCATION: "학력",
+  TRAINING: "교육",
+  ACTIVITY: "활동",
+  AWARD: "수상",
+};
+
+export const experienceSchema = z
+  .object({
+    kind: z.enum(EXPERIENCE_KINDS, { error: "종류를 선택해 주세요." }),
+    title: text("이름", 80),
+    subtitle: optionalText("세부 내용", 100),
+    startDate: month,
+    endDate: z.union([month, z.literal("")]).optional().default(""),
+    description: optionalText("설명", 300),
+    projectId: z
+      .union([z.literal(""), z.coerce.number().int().positive()])
+      .optional()
+      .transform((value) => (typeof value === "number" ? value : null)),
+  })
+  // 수상은 받은 달 하나만 쓴다.
+  .transform((value) => (value.kind === "AWARD" ? { ...value, endDate: "" } : value))
+  .refine((value) => value.endDate === "" || value.endDate >= value.startDate, {
+    path: ["endDate"],
+    message: "종료 월은 시작 월보다 빠를 수 없습니다.",
+  });
+
+export type ExperienceInput = z.infer<typeof experienceSchema>;
+
 export const monitorSchema = z.object({
   name: text("이름", 40),
   description: optionalText("설명", 120),

@@ -9,7 +9,7 @@ import { sendTrack, sendTrackBeacon, splitTrackAttribute, trackEventOnce } from 
 const HEARTBEAT_INTERVAL_MS = 15_000;
 
 // src/lib/analytics/classify.ts 의 TRACKED_SECTIONS 와 같은 값(클라이언트 번들에 서버 코드를 넣지 않으려고 따로 둔다)
-const TRACKED_SECTIONS = ["projects", "skills", "certificates", "contact"];
+const TRACKED_SECTIONS = ["projects", "experience", "skills", "certificates", "contact"];
 
 function getSessionId(): string {
   try {

@@ -53,7 +53,7 @@ export function parseTrackedPath(path: unknown): TrackedPage | null {
 /* ── 콘텐츠 반응 이벤트 ─────────────────────────────────────── */
 
 /** 홈에서 도달 여부를 세는 섹션. 화면 순서와 같다. */
-export const TRACKED_SECTIONS = ["projects", "skills", "certificates", "contact"] as const;
+export const TRACKED_SECTIONS = ["projects", "experience", "skills", "certificates", "contact"] as const;
 export type TrackedSection = (typeof TRACKED_SECTIONS)[number];
 
 export const PROFILE_LINK_KEYS = ["github", "velog", "notion"] as const;
@@ -71,7 +71,7 @@ const PROJECT_ID = /^[1-9]\d{0,8}$/;
 /**
  * 브라우저가 보낸 이벤트를 검사한다. 정해 둔 형식이 아니면 null.
  *   home                          홈 방문(탭 세션당 1번)
- *   section  projects|skills|certificates|contact
+ *   section  projects|experience|skills|certificates|contact
  *   card     <프로젝트 id>         홈의 프로젝트 카드 클릭
  *   link     profile:<github|velog|notion> | project:<id>:<demo|github|docs>
  *   contact  start                문의 폼 작성 시작
