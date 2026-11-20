@@ -38,6 +38,180 @@
 }
 
 /*
+ * IBM Plex Mono 를 받기 전에 보이는 Windows 기본 코드 글꼴을 Plex Mono 와 같은 폭·높이로 맞춘다(실측값).
+ * Windows 11 은 Cascadia Mono(2.4% 좁음), Windows 10 은 Consolas(9% 좁음)가 쓰인다.
+ */
+@font-face {
+  font-family: "IBM Plex Mono Fallback";
+  src: local("Cascadia Mono");
+  size-adjust: 102.4%;
+  ascent-override: 100.1%;
+  descent-override: 26.9%;
+  line-gap-override: 0%;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "IBM Plex Mono Fallback 2";
+  src: local("Consolas");
+  size-adjust: 109.13%;
+  ascent-override: 93.9%;
+  descent-override: 25.2%;
+  line-gap-override: 0%;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/*
+ * Pretendard 를 받기 전에 잠깐 보이는 대체 글꼴(Windows 의 맑은 고딕)을 Pretendard 와 같은 폭으로 맞춘다.
+ * 그대로 두면 한글이 Pretendard 보다 약 14% 넓어서, 글꼴이 바뀌는 순간 줄바꿈과 위치가 움직인다.
+ * 글자 종류마다 폭 차이가 달라 한글·공백·숫자·문장부호·나머지를 나눠 맞추고(실측값),
+ * 세로 지표도 Pretendard 와 같게 해서 기준선이 움직이지 않게 한다.
+ * 숫자는 날짜·통계에 쓰는 고정폭 숫자(tabular-nums) 쪽에 맞췄다(맑은 고딕은 숫자가 원래 고정폭이다).
+ * 맑은 고딕이 없는 기기(macOS, Android 등)에서는 이 글꼴이 건너뛰어진다.
+ */
+@font-face {
+  font-family: "Pretendard Fallback";
+  font-weight: 100 550;
+  src: local("Malgun Gothic");
+  size-adjust: 102%;
+  ascent-override: 93.1%;
+  descent-override: 23.5%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Pretendard Fallback";
+  font-weight: 551 900;
+  src: local("Malgun Gothic Bold"), local("MalgunGothicBold");
+  size-adjust: 99.6%;
+  ascent-override: 95.4%;
+  descent-override: 24.1%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Pretendard Fallback";
+  font-weight: 100 550;
+  src: local("Malgun Gothic");
+  unicode-range: U+0030-0039;
+  size-adjust: 111%;
+  ascent-override: 85.6%;
+  descent-override: 21.6%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Pretendard Fallback";
+  font-weight: 551 900;
+  src: local("Malgun Gothic Bold"), local("MalgunGothicBold");
+  unicode-range: U+0030-0039;
+  size-adjust: 110%;
+  ascent-override: 86.4%;
+  descent-override: 21.8%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Pretendard Fallback";
+  font-weight: 100 550;
+  src: local("Malgun Gothic");
+  unicode-range: U+0020;
+  size-adjust: 70.4%;
+  ascent-override: 134.9%;
+  descent-override: 34.1%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Pretendard Fallback";
+  font-weight: 551 900;
+  src: local("Malgun Gothic Bold"), local("MalgunGothicBold");
+  unicode-range: U+0020;
+  size-adjust: 66.7%;
+  ascent-override: 142.4%;
+  descent-override: 36%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Pretendard Fallback";
+  font-weight: 100 550;
+  src: local("Malgun Gothic");
+  unicode-range: U+0021, U+0027-0029, U+002C, U+002E, U+003A-003B, U+00B7;
+  size-adjust: 115.6%;
+  ascent-override: 82.2%;
+  descent-override: 20.8%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Pretendard Fallback";
+  font-weight: 551 900;
+  src: local("Malgun Gothic Bold"), local("MalgunGothicBold");
+  unicode-range: U+0021, U+0027-0029, U+002C, U+002E, U+003A-003B, U+00B7;
+  size-adjust: 108.4%;
+  ascent-override: 87.6%;
+  descent-override: 22.1%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Pretendard Fallback";
+  font-weight: 100 550;
+  src: local("Malgun Gothic");
+  unicode-range: U+2013;
+  size-adjust: 91.7%;
+  ascent-override: 103.6%;
+  descent-override: 26.2%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Pretendard Fallback";
+  font-weight: 551 900;
+  src: local("Malgun Gothic Bold"), local("MalgunGothicBold");
+  unicode-range: U+2013;
+  size-adjust: 93.4%;
+  ascent-override: 101.7%;
+  descent-override: 25.7%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Pretendard Fallback";
+  font-weight: 100 550;
+  src: local("Malgun Gothic");
+  unicode-range: U+002F;
+  size-adjust: 84.3%;
+  ascent-override: 112.7%;
+  descent-override: 28.5%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Pretendard Fallback";
+  font-weight: 551 900;
+  src: local("Malgun Gothic Bold"), local("MalgunGothicBold");
+  unicode-range: U+002F;
+  size-adjust: 84.7%;
+  ascent-override: 112.2%;
+  descent-override: 28.3%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Pretendard Fallback";
+  font-weight: 100 550;
+  src: local("Malgun Gothic");
+  unicode-range: U+1100-11FF, U+3130-318F, U+AC00-D7A3;
+  size-adjust: 86.43%;
+  ascent-override: 109.9%;
+  descent-override: 27.8%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Pretendard Fallback";
+  font-weight: 551 900;
+  src: local("Malgun Gothic Bold"), local("MalgunGothicBold");
+  unicode-range: U+1100-11FF, U+3130-318F, U+AC00-D7A3;
+  size-adjust: 86.43%;
+  ascent-override: 109.9%;
+  descent-override: 27.8%;
+  line-gap-override: 0%;
+}
+
+/*
  * 색은 중립색 + 포인트 1색(딥 블루)만 쓴다.
  * 컴포넌트에서는 아래 토큰(bg-background, text-muted, border-line, bg-accent ...)만 사용하고
  * 다크 모드는 토큰 값만 바꿔서 처리한다.
@@ -123,11 +297,11 @@
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --font-sans:
-    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Pretendard Variable", Pretendard, "Pretendard Fallback", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
     "Malgun Gothic", "Segoe UI", sans-serif;
   --font-mono:
-    "IBM Plex Mono", ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas,
-    "Pretendard Variable", monospace;
+    "IBM Plex Mono", "IBM Plex Mono Fallback", "IBM Plex Mono Fallback 2", ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas,
+    "Pretendard Variable", "Pretendard Fallback", monospace;
 }
 
 @layer base {
