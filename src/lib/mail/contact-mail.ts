@@ -20,12 +20,11 @@ export function escapeHtml(value: string): string {
 
 /** 메일 제목과 본문(text, html)을 만든다. 방문자가 입력한 값은 HTML 에 넣기 전에 모두 이스케이프한다. */
 export function buildContactMail(input: ContactMailInput) {
-  const organization = input.organization || "(입력하지 않음)";
   const subject = `[포트폴리오 문의] ${input.subject}`;
 
   const text = [
-    `이름: ${input.name}`,
-    `소속: ${organization}`,
+    `보낸 사람: ${input.name}`,
+    ...(input.organization ? [`소속: ${input.organization}`] : []),
     `메일 주소: ${input.email}`,
     `제목: ${input.subject}`,
     "",
@@ -44,9 +43,8 @@ export function buildContactMail(input: ContactMailInput) {
 <div style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid #e1e5ec;border-radius:12px;padding:24px">
 <p style="margin:0 0 16px;font-size:13px;font-weight:600;color:#1f3fae">포트폴리오 문의</p>
 <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:15px">
-${row("이름", input.name)}
-${row("소속", organization)}
-${row("메일 주소", input.email)}
+${row("보낸 사람", input.name)}
+${input.organization ? `${row("소속", input.organization)}\n` : ""}${row("메일 주소", input.email)}
 ${row("제목", input.subject)}
 </table>
 <hr style="border:0;border-top:1px solid #e1e5ec;margin:16px 0">

@@ -2,9 +2,8 @@ import type { Page } from "@playwright/test";
 import { expect, findMails, loginAsAdmin, newVisitor, test } from "./fixtures";
 
 async function fillContact(page: Page, values: { subject: string; body?: string }) {
-  await page.locator("#contact-name").fill("김채용");
+  await page.locator("#contact-name").fill("김채용 (예시 주식회사)");
   await page.locator("#contact-email").fill("recruiter@example.com");
-  await page.locator("#contact-organization").fill("예시 주식회사");
   await page.locator("#contact-subject").fill(values.subject);
   await page.locator("#contact-body").fill(values.body ?? "포트폴리오 잘 봤습니다. 면접 일정을 잡고 싶습니다.");
 }

@@ -28,7 +28,7 @@ describe("contactSchema", () => {
     expect(result.success).toBe(false);
     if (result.success) return;
     const errors = toFieldErrors(result.error);
-    expect(errors.name).toBe("이름을 입력해 주세요.");
+    expect(errors.name).toBe("이름 또는 소속을 입력해 주세요.");
     expect(errors.email).toBe("메일 주소를 입력해 주세요.");
     expect(errors.subject).toBe("제목을 입력해 주세요.");
     expect(errors.body).toMatch(/10자 이상/);

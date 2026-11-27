@@ -42,7 +42,7 @@ declare global {
   }
 }
 
-const fieldOrder: ContactField[] = ["name", "email", "organization", "subject", "body"];
+const fieldOrder: ContactField[] = ["name", "email", "subject", "body"];
 
 /**
  * 메일 작성 화면처럼 구성한 문의 폼.
@@ -116,7 +116,6 @@ export function ContactForm({
     const values = {
       name: String(data.get("name") ?? ""),
       email: String(data.get("email") ?? ""),
-      organization: String(data.get("organization") ?? ""),
       subject: String(data.get("subject") ?? ""),
       body: String(data.get("body") ?? ""),
       website: String(data.get("website") ?? ""),
@@ -256,7 +255,7 @@ export function ContactForm({
           autoComplete="name"
           required
           maxLength={CONTACT_LIMITS.name}
-          placeholder="이름"
+          placeholder="이름 또는 소속"
           aria-invalid={Boolean(errors.name)}
           aria-describedby={describedBy("name")}
           className={inputClass}
@@ -276,28 +275,6 @@ export function ContactForm({
           placeholder="답장받을 메일 주소"
           aria-invalid={Boolean(errors.email)}
           aria-describedby={describedBy("email")}
-          className={inputClass}
-        />
-      </Row>
-      <Row
-        label={
-          <>
-            소속 <span className="text-[0.8125rem]">(선택)</span>
-          </>
-        }
-        htmlFor="contact-organization"
-        error={errors.organization}
-        errorId={errorId("organization")}
-      >
-        <input
-          id="contact-organization"
-          name="organization"
-          type="text"
-          autoComplete="organization"
-          maxLength={CONTACT_LIMITS.organization}
-          placeholder="회사나 팀 이름"
-          aria-invalid={Boolean(errors.organization)}
-          aria-describedby={describedBy("organization")}
           className={inputClass}
         />
       </Row>

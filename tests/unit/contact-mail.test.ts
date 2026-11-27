@@ -27,10 +27,10 @@ describe("buildContactMail", () => {
     expect(buildContactMail(input).subject).toBe("[포트폴리오 문의] 면접 제안");
   });
 
-  it("본문에 이름, 소속, 메일 주소, 내용을 정리해 넣는다", () => {
+  it("본문에 보낸 사람, 메일 주소, 내용을 정리해 넣고, 비어 있는 소속 줄은 뺀다", () => {
     const { text } = buildContactMail(input);
-    expect(text).toContain("이름: 홍길동 <b>");
-    expect(text).toContain("소속: (입력하지 않음)");
+    expect(text).toContain("보낸 사람: 홍길동 <b>");
+    expect(text).not.toContain("소속");
     expect(text).toContain("메일 주소: hong@example.com");
     expect(text).toContain("첫 줄\n<script>alert(1)</script>");
   });

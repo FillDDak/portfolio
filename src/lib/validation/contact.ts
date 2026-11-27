@@ -19,8 +19,8 @@ const singleLine = (emptyMessage: string, tooLongMessage: string, max: number) =
 /** 클라이언트와 서버가 함께 쓰는 문의 폼 검증 스키마 */
 export const contactSchema = z.object({
   name: singleLine(
-    "이름을 입력해 주세요.",
-    `이름은 ${CONTACT_LIMITS.name}자 이하로 입력해 주세요.`,
+    "이름 또는 소속을 입력해 주세요.",
+    `이름 또는 소속은 ${CONTACT_LIMITS.name}자 이하로 입력해 주세요.`,
     CONTACT_LIMITS.name,
   ),
   email: z
