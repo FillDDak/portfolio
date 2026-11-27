@@ -31,8 +31,9 @@ export function Markdown({ children }: { children: string }) {
           },
           // eslint-disable-next-line @next/next/no-img-element -- 본문 이미지는 크기를 미리 알 수 없다
           img: ({ src, alt }) => <img src={typeof src === "string" ? src : undefined} alt={alt ?? ""} loading="lazy" decoding="async" />,
-          // 본문 제목은 페이지 제목(h1) 아래 단계로 맞춘다.
-          h1: ({ children: content }) => <h2>{content}</h2>,
+          // 페이지 제목(h1)은 하나만 두므로 본문의 # 은 h2 로 내리되, ## 보다 크게 보이게 따로 꾸민다.
+          // 글자 크기: # > ## > ### > #### (globals.css 의 .prose-content 참고)
+          h1: ({ children: content }) => <h2 className="md-h1">{content}</h2>,
         }}
       >
         {children}
