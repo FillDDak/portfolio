@@ -96,6 +96,7 @@ export default async function ProfilePage() {
             {(
               [
                 ["githubUrl", "GitHub", profile.githubUrl, "https://github.com/아이디"],
+                ["velogUrl", "Velog", profile.velogUrl, "https://velog.io/@아이디"],
                 ["notionUrl", "Notion", profile.notionUrl, "https://www.notion.so/…"],
               ] as const
             ).map(([name, label, value, placeholder]) => (

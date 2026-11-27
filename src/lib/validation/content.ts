@@ -48,6 +48,7 @@ export const profileSchema = z.object({
   bio: optionalText("자기소개", 600),
   coreStack: optionalText("핵심 스택", 300),
   githubUrl: optionalUrl("GitHub"),
+  velogUrl: optionalUrl("Velog"),
   notionUrl: optionalUrl("Notion"),
   contactEmail: z
     .string()

@@ -14,6 +14,7 @@ const SECTION_LABELS: Record<ContentStats["sections"][number]["id"], string> = {
 const PROFILE_LABELS: Record<ContentStats["profileLinks"][number]["key"], string> = {
   github: "GitHub",
   blog: "Blog",
+  velog: "Velog",
   notion: "Notion",
 };
 

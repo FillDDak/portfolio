@@ -17,7 +17,7 @@ model Profile {
   /// 첫 화면에 보여줄 핵심 스택. 쉼표로 구분한 문자열
   coreStack       String    @default("")
   githubUrl       String    @default("")
-  /// DB 에는 쓰지 않는 velogUrl 칸이 남아 있다. 배포 중 되돌릴 때 이전 버전이 깨지지 않게 다음 배포에서 지운다.
+  velogUrl        String    @default("")
   notionUrl       String    @default("")
   /// 문의 섹션에 공개하는 메일 주소. 비우면 표시하지 않는다(문의 폼의 수신 주소는 환경 변수 CONTACT_TO 로 따로 둔다)
   contactEmail    String    @default("")

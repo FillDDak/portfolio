@@ -32,6 +32,7 @@ export async function getProfile() {
     bio: profile.bio,
     coreStack: splitList(profile.coreStack),
     githubUrl: profile.githubUrl,
+    velogUrl: profile.velogUrl,
     notionUrl: profile.notionUrl,
     contactEmail: profile.contactEmail,
     hasResume: Boolean(profile.resumeFile),

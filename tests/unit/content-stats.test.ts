@@ -107,6 +107,7 @@ describe("콘텐츠 반응 집계", () => {
     expect(result.profileLinks).toEqual([
       { key: "github", count: 0 },
       { key: "blog", count: 1 },
+      { key: "velog", count: 0 },
       { key: "notion", count: 0 },
     ]);
     // 비공개 프로젝트는 목록에 나오지 않는다.

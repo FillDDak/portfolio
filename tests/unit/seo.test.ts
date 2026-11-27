@@ -28,6 +28,7 @@ describe("buildPersonJsonLd", () => {
     jobTitle: "백엔드 개발자",
     tagline: "한 줄 소개",
     githubUrl: "https://github.com/FillDDak",
+    velogUrl: "",
   };
 
   it("이름, 직무, 주소와 값이 있는 링크만 담는다", () => {

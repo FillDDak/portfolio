@@ -59,7 +59,7 @@ export function parseTrackedPath(path: unknown): TrackedPage | null {
 export const TRACKED_SECTIONS = ["projects", "experience", "skills", "certificates", "contact"] as const;
 export type TrackedSection = (typeof TRACKED_SECTIONS)[number];
 
-export const PROFILE_LINK_KEYS = ["github", "blog", "notion"] as const;
+export const PROFILE_LINK_KEYS = ["github", "blog", "velog", "notion"] as const;
 export const PROJECT_LINK_KEYS = ["demo", "github", "docs"] as const;
 
 export type ContentEvent = {
@@ -76,7 +76,7 @@ const PROJECT_ID = /^[1-9]\d{0,8}$/;
  *   home                          홈 방문(탭 세션당 1번)
  *   section  projects|experience|skills|certificates|contact
  *   card     <프로젝트 id>         홈의 프로젝트 카드 클릭
- *   link     profile:<github|blog|notion> | project:<id>:<demo|github|docs>
+ *   link     profile:<github|blog|velog|notion> | project:<id>:<demo|github|docs>
  *   contact  start                문의 폼 작성 시작
  * PDF 열람과 문의 전송은 서버에서 직접 기록하므로 여기서는 받지 않는다.
  */
