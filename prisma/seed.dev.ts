@@ -260,6 +260,69 @@ async function fill() {
   });
 }
 
+/** 블로그 목록이 길어졌을 때(페이지 나눔)의 화면 확인용 글. --many-posts 일 때만 넣는다(E2E 테스트 서버는 넣는다). */
+const EXTRA_POSTS: [category: "TROUBLESHOOTING" | "NOTE", title: string, summary: string, tags: string][] = [
+  ["TROUBLESHOOTING", "Redis 캐시 만료 순간 DB 부하 급증", "같은 키가 한꺼번에 만료되며 생긴 캐시 스탬피드를 만료 시간 분산과 락으로 막았습니다.", "Redis"],
+  ["NOTE", "JPA 영속성 컨텍스트 한 장 정리", "1차 캐시, 변경 감지, 쓰기 지연을 그림과 예제로 정리했습니다.", "JPA"],
+  ["TROUBLESHOOTING", "배포 직후 502 응답", "앱이 뜨기 전에 nginx 가 요청을 보내던 문제를 헬스체크 대기로 해결했습니다.", "nginx, Linux"],
+  ["NOTE", "인덱스가 안 타는 쿼리 다섯 가지", "함수 적용, 형 변환, 앞쪽 와일드카드 등 실수하기 쉬운 경우를 모았습니다.", "MySQL"],
+  ["TROUBLESHOOTING", "LazyInitializationException", "트랜잭션 밖에서 지연 로딩하던 코드를 DTO 조회로 바꿨습니다.", "JPA, Spring Boot"],
+  ["NOTE", "Docker 이미지 크기 줄이기", "멀티 스테이지 빌드와 레이어 순서로 이미지를 780MB 에서 190MB 로 줄였습니다.", "Docker"],
+  ["TROUBLESHOOTING", "스케줄러가 두 번 실행되는 문제", "서버를 두 대로 늘린 뒤 생긴 중복 실행을 ShedLock 으로 막았습니다.", "Spring Boot"],
+  ["NOTE", "HTTP 캐시 헤더 정리", "Cache-Control, ETag, Last-Modified 가 각각 언제 쓰이는지 정리했습니다.", "HTTP"],
+  ["TROUBLESHOOTING", "대용량 엑셀 다운로드 OOM", "SXSSF 스트리밍으로 메모리 사용량을 1.2GB 에서 80MB 로 낮췄습니다.", "Java"],
+  ["NOTE", "Git rebase 와 merge 언제 쓰나", "팀 규칙을 정하며 둘의 차이와 주의할 점을 정리했습니다.", "Git"],
+  ["TROUBLESHOOTING", "데드락으로 실패하는 주문 처리", "락 순서를 통일해 주문과 재고 갱신 사이의 데드락을 없앴습니다.", "MySQL"],
+  ["NOTE", "테스트 픽스처 관리 방법", "테스트마다 데이터를 만드는 방식과 공유하는 방식의 장단점을 비교했습니다.", "JUnit"],
+  ["TROUBLESHOOTING", "타임존 때문에 하루 밀린 통계", "서버와 DB 의 시간대 차이를 UTC 저장, KST 표시로 정리했습니다.", "Java, MySQL"],
+  ["NOTE", "REST API 에러 응답 설계", "에러 코드, 메시지, 필드 오류를 일관된 형식으로 돌려주는 방법입니다.", "Spring Boot"],
+  ["TROUBLESHOOTING", "커넥션 풀 고갈", "외부 API 호출을 트랜잭션 밖으로 빼서 HikariCP 대기 시간을 없앴습니다.", "Spring Boot, MySQL"],
+  ["NOTE", "GitHub Actions 로 배포 자동화", "검사, 빌드, 배포를 한 워크플로로 묶은 과정을 정리했습니다.", "GitHub Actions"],
+  ["TROUBLESHOOTING", "이미지 업로드 후 회전된 사진", "EXIF 회전 정보를 반영하지 않아 생긴 문제를 서버 변환에서 처리했습니다.", "Java"],
+  ["NOTE", "자바 record 실무에서 써 보기", "DTO 를 record 로 바꾸며 좋았던 점과 걸렸던 점을 적었습니다.", "Java"],
+  ["TROUBLESHOOTING", "페이지네이션 중복·누락", "정렬 기준이 겹쳐 생긴 문제를 고유 키 정렬과 커서 방식으로 해결했습니다.", "JPA"],
+  ["NOTE", "로그 레벨 기준 정하기", "ERROR, WARN, INFO 를 어디에 쓸지 팀 기준을 정리했습니다.", "Logging"],
+  ["TROUBLESHOOTING", "Kafka 컨슈머 재처리 폭주", "오프셋 커밋 시점을 바꾸고 재시도 토픽을 두어 무한 재처리를 막았습니다.", "Kafka"],
+  ["NOTE", "SQL 실행 계획 읽는 법", "EXPLAIN 결과에서 먼저 볼 항목 세 가지를 정리했습니다.", "MySQL"],
+  ["TROUBLESHOOTING", "메일 발송 지연", "동기 발송을 비동기 큐로 바꿔 회원가입 응답을 3초에서 0.2초로 줄였습니다.", "Spring Boot"],
+  ["NOTE", "Spring Security 필터 흐름", "요청이 인증 필터를 지나는 순서를 그림으로 정리했습니다.", "Spring Security"],
+  ["TROUBLESHOOTING", "CORS 오류가 운영에서만 나는 문제", "프록시 설정에서 빠진 헤더를 찾아 고쳤습니다.", "nginx"],
+  ["NOTE", "코드 리뷰에서 자주 받은 지적", "1년 동안 받은 리뷰를 분류해 습관을 고친 과정입니다.", "회고"],
+];
+
+const IMAGE_COLORS = [
+  ["#7c2d12", "#fb923c"],
+  ["#4c1d95", "#a78bfa"],
+  ["#164e63", "#22d3ee"],
+  ["#831843", "#f472b6"],
+] as const;
+
+/** 프로젝트에는 연결하지 않는다(프로젝트 상세의 글 목록은 기본 예시 글로 확인한다). */
+async function fillManyPosts() {
+  const images = await Promise.all(
+    IMAGE_COLORS.map(([background, bar], index) =>
+      seedImage(`5eed00000000000000000000000001${index.toString(16).padStart(2, "0")}`, background, bar),
+    ),
+  );
+  await db.post.createMany({
+    data: EXTRA_POSTS.map(([category, title, summary, tags], index) => {
+      // 2025-01 부터 약 2주 간격으로 날짜를 매긴다.
+      const date = new Date(Date.UTC(2025, 0, 6 + index * 15)).toISOString().slice(0, 10);
+      const image = index % 3 === 0 ? `![그림](${images[index % images.length]})\n\n` : "";
+      return {
+        category,
+        title: `[예시] ${title}`,
+        slug: `example-post-${String(index + 1).padStart(2, "0")}`,
+        summary,
+        tags,
+        date,
+        isPublished: true,
+        body: `## 개요\n\n${image}${summary}\n\n## 내용\n\n예시 글입니다.\n`,
+      };
+    }),
+  });
+}
+
 async function main() {
   await clear();
   if (process.argv.includes("--clear")) {
@@ -267,6 +330,11 @@ async function main() {
     return;
   }
   await fill();
+  if (process.argv.includes("--many-posts")) {
+    await fillManyPosts();
+    console.log(`더미 데이터와 블로그 예시 글 ${EXTRA_POSTS.length}개를 더 채웠습니다.`);
+    return;
+  }
   console.log("더미 데이터를 채웠습니다.");
 }
 

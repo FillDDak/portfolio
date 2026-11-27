@@ -65,7 +65,7 @@ if (migrate.status !== 0) process.exit(migrate.status ?? 1);
 
 // --seed 를 붙이면 더미 데이터(프로젝트, 스킬 등)를 넣고 시작한다.
 if (process.argv.includes("--seed")) {
-  const seed = spawnSync("npx", ["tsx", "prisma/seed.dev.ts"], {
+  const seed = spawnSync("npx", ["tsx", "prisma/seed.dev.ts", "--many-posts"], {
     cwd: root,
     env: { ...env, NODE_ENV: "development" },
     stdio: "inherit",
