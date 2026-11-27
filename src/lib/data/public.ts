@@ -1,6 +1,7 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
 import { toPostCategory } from "@/lib/post-category";
+import { firstImageUrl } from "@/lib/post-thumbnail";
 import { EXPERIENCE_KINDS, type ExperienceKind } from "@/lib/validation/content";
 
 /**
@@ -229,6 +230,8 @@ const POST_CARD_SELECT = {
   summary: true,
   tags: true,
   date: true,
+  // 목록에는 본문을 넘기지 않고, 썸네일(첫 이미지)을 뽑는 데만 쓴다. 결과는 캐시되므로 매번 계산하지 않는다.
+  body: true,
   project: { select: { slug: true, title: true, isPublished: true } },
 } as const;
 
@@ -246,6 +249,7 @@ function toPostCard(row: PostCardRow) {
     summary: row.summary,
     tags: splitList(row.tags),
     date: row.date,
+    thumbnail: firstImageUrl(row.body),
     project: row.project?.isPublished ? { slug: row.project.slug, title: row.project.title } : null,
   };
 }

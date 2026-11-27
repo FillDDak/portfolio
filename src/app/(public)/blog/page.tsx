@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PostList } from "@/components/public/post-list";
+import { PostListSwitcher } from "@/components/public/post-list-switcher";
 import { getPublishedPosts } from "@/lib/data/public";
 
 export const metadata: Metadata = {
@@ -18,7 +18,7 @@ export default async function PostsPage() {
       <p className="mt-2 text-muted">프로젝트에서 겪은 문제와 해결 과정, 개발하며 정리한 내용입니다.</p>
       <div className="mt-8">
         {posts.length > 0 ? (
-          <PostList posts={posts} />
+          <PostListSwitcher posts={posts} />
         ) : (
           <p className="border-y border-line py-10 text-center text-muted">아직 공개한 글이 없습니다.</p>
         )}

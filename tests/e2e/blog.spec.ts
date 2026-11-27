@@ -14,6 +14,63 @@ test.describe("블로그", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("블로그");
   });
 
+  test("목록형·카드형을 바꿔 볼 수 있고, 고른 방식은 다시 들어와도 유지된다. 본문 첫 이미지가 썸네일이 된다", async ({ page }) => {
+    await page.goto("/blog");
+    const listButton = page.getByRole("button", { name: "목록형" });
+    const cardButton = page.getByRole("button", { name: "카드형" });
+    await expect(listButton).toHaveAttribute("aria-pressed", "true");
+
+    // 목록형: 이미지가 있는 글 2개만 썸네일이 있다.
+    const items = page.locator("main article");
+    await expect(items).toHaveCount(4);
+    await expect(page.locator("main article img")).toHaveCount(2);
+    await expect(items.filter({ hasText: "선착순 쿠폰 초과 발급" }).locator("img")).toHaveAttribute(
+      "src",
+      "/uploads/5eed0000000000000000000000000001.webp",
+    );
+
+    await cardButton.click();
+    await expect(cardButton).toHaveAttribute("aria-pressed", "true");
+    // 카드형: 모든 글에 썸네일 자리가 있고, 이미지가 없는 글은 빈 칸으로 채운다.
+    await expect(page.locator("main article img")).toHaveCount(2);
+    await expect(page.locator("main ul.grid > li")).toHaveCount(4);
+    // 업로드 폴더의 이미지가 실제로 열린다.
+    const firstImage = page.locator("main article img").first();
+    await firstImage.scrollIntoViewIfNeeded();
+    await expect.poll(() => firstImage.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+
+    await page.reload();
+    await expect(page.getByRole("button", { name: "카드형" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator("main ul.grid > li")).toHaveCount(4);
+
+    await page.getByRole("button", { name: "목록형" }).click();
+    await expect(page.locator("main ul.grid")).toHaveCount(0);
+  });
+
+  test("분류 버튼으로 트러블슈팅·개발 노트만 골라 볼 수 있다", async ({ page }) => {
+    await page.goto("/blog");
+    const filters = page.getByRole("group", { name: "분류" });
+    const titles = page.locator("main article h2");
+    await expect(filters.getByRole("button", { name: "전체 4" })).toHaveAttribute("aria-pressed", "true");
+
+    await filters.getByRole("button", { name: "트러블슈팅 3" }).click();
+    await expect(titles).toHaveText([
+      "[예시] 쿠폰 발급 API 응답 지연",
+      "[예시] 선착순 쿠폰 초과 발급 문제",
+      "[예시] 게시글 목록 N+1 문제",
+    ]);
+
+    // 카드형으로 바꿔도 고른 분류는 그대로다.
+    await page.getByRole("button", { name: "카드형" }).click();
+    await expect(titles).toHaveCount(3);
+
+    await filters.getByRole("button", { name: "개발 노트 1" }).click();
+    await expect(titles).toHaveText(["[예시] Spring 트랜잭션 전파 정리"]);
+
+    await filters.getByRole("button", { name: "전체 4" }).click();
+    await expect(titles).toHaveCount(4);
+  });
+
   test("글 목록은 공개한 글만 최신순으로 보이고, 글에서 관련 프로젝트로 이어진다", async ({ page }) => {
     await page.goto("/blog");
     const titles = page.locator("main article h2");

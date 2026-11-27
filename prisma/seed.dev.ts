@@ -7,6 +7,9 @@
  * 운영 DB에는 절대 실행하지 않는다. NODE_ENV=production 이면 바로 종료한다.
  */
 import "dotenv/config";
+import { mkdir } from "node:fs/promises";
+import path from "node:path";
+import sharp from "sharp";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "../src/generated/prisma/client";
 
@@ -33,6 +36,20 @@ async function clear() {
   await db.experience.deleteMany();
   await db.post.deleteMany();
   await db.profile.update({ where: { id: 1 }, data: { coreStack: "", notionUrl: "" } });
+}
+
+/** 단색 바탕에 막대 몇 개를 그린 예시 이미지를 업로드 폴더에 만들고 본문에 넣을 주소를 돌려준다. */
+async function seedImage(name: string, background: string, bar: string) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675">
+    <rect width="1200" height="675" fill="${background}"/>
+    ${[220, 380, 300, 500, 420]
+      .map((h, i) => `<rect x="${170 + i * 180}" y="${575 - h}" width="110" height="${h}" rx="12" fill="${bar}"/>`)
+      .join("")}
+  </svg>`;
+  const dir = path.resolve(process.env.UPLOAD_DIR ?? "./data/uploads", "images");
+  await mkdir(dir, { recursive: true });
+  await sharp(Buffer.from(svg)).webp({ quality: 80 }).toFile(path.join(dir, `${name}.webp`));
+  return `/uploads/${name}.webp`;
 }
 
 const projectBody = (problem: string, solution: string, result: string) => `## 문제
@@ -176,6 +193,9 @@ async function fill() {
   });
 
   const studyBoard = await db.project.findUnique({ where: { slug: "example-study-board" }, select: { id: true } });
+  // 목록 썸네일 확인용 이미지(본문의 첫 이미지가 썸네일이 된다).
+  const chartImage = await seedImage("5eed0000000000000000000000000001", "#1e3a8a", "#60a5fa");
+  const flowImage = await seedImage("5eed0000000000000000000000000002", "#14532d", "#4ade80");
   await db.post.createMany({
     data: [
       {
@@ -187,7 +207,7 @@ async function fill() {
         date: "2026-04-10",
         isPublished: true,
         projectId: coupon?.id ?? null,
-        body: "## 문제 상황\n\n이벤트 시작 직후 재고 100개에 137개가 발급되었습니다.\n\n## 원인\n\n재고 확인과 차감이 서로 다른 쿼리라 그 사이에 다른 요청이 끼어들었습니다.\n\n## 해결\n\n```lua\nlocal remain = redis.call('DECR', KEYS[1])\nif remain < 0 then return -1 end\nreturn remain\n```\n\n## 결과\n\n초과 발급 0건.\n",
+        body: "## 문제 상황\n\n이벤트 시작 직후 재고 100개에 137개가 발급되었습니다.\n\n![발급 수 그래프](" + chartImage + ")\n\n## 원인\n\n재고 확인과 차감이 서로 다른 쿼리라 그 사이에 다른 요청이 끼어들었습니다.\n\n## 해결\n\n```lua\nlocal remain = redis.call('DECR', KEYS[1])\nif remain < 0 then return -1 end\nreturn remain\n```\n\n## 결과\n\n초과 발급 0건.\n",
       },
       {
         category: "TROUBLESHOOTING",
@@ -219,7 +239,7 @@ async function fill() {
         tags: "Spring Boot",
         date: "2026-06-20",
         isPublished: true,
-        body: "## REQUIRED\n\n바깥 트랜잭션에 참여합니다.\n\n## REQUIRES_NEW\n\n항상 새 트랜잭션을 엽니다.\n",
+        body: "## REQUIRED\n\n![전파 흐름](" + flowImage + ")\n\n바깥 트랜잭션에 참여합니다.\n\n## REQUIRES_NEW\n\n항상 새 트랜잭션을 엽니다.\n",
       },
       {
         category: "NOTE",

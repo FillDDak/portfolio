@@ -60,7 +60,22 @@ export const CloseIcon = (props: IconProps) => (
   </Base>
 );
 
-export const SunIcon = (props: IconProps) => (
+export const ListIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />
+  </Base>
+);
+
+export const GridIcon = (props: IconProps) => (
+  <Base {...props}>
+    <rect x="4" y="4" width="6.5" height="6.5" rx="1.5" />
+    <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5" />
+    <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5" />
+    <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5" />
+  </Base>
+);
+
+export const SunIcon =(props: IconProps) => (
   <Base {...props}>
     <circle cx="12" cy="12" r="4" />
     <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
