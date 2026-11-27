@@ -1,17 +1,18 @@
 import { expect, loginAsAdmin, test } from "./fixtures";
 
 test.describe("경험", () => {
-  test("홈에서 프로젝트 다음에 종류별(학력 → 교육 → 활동 → 수상)로 보이고, 관련 프로젝트로 이어진다", async ({ page }) => {
+  test("홈에서 프로젝트 다음에 종류와 상관없이 최근순으로 보이고, 관련 프로젝트로 이어진다", async ({ page }) => {
     await page.goto("/");
     const ids = await page.locator("main section[id]").evaluateAll((sections) => sections.map((section) => section.id));
     expect(ids.indexOf("experience")).toBe(ids.indexOf("projects") + 1);
 
     const section = page.locator("#experience");
-    await expect(section.locator("dt")).toHaveText(["학력", "교육", "활동", "수상"]);
+    // 진행 중 → 끝난 달(수상은 받은 달)이 최근인 순서
+    await expect(section.locator("dt")).toHaveText(["활동", "학력", "교육", "수상"]);
     await expect(section).toContainText("2025.03 – 2025.09");
     await expect(section).toContainText("진행 중");
     // 수상은 받은 달 하나만 보인다.
-    await expect(section.getByRole("listitem").filter({ hasText: "해커톤 우수상" })).toContainText(/2025\.08$/);
+    await expect(section.locator("dd").filter({ hasText: "해커톤 우수상" })).toContainText(/2025\.08$/);
 
     const link = section.getByRole("link", { name: /관련 프로젝트:/ });
     await expect(link).toHaveAttribute("href", "/projects/example-coupon");
@@ -34,11 +35,10 @@ test.describe("경험", () => {
 
     try {
       await page.goto("/");
-      const item = page.locator("#experience").getByRole("listitem").filter({ hasText: title });
-      await expect(item).toContainText(/2024\.11$/);
-      // 같은 묶음 안에서는 최근 것이 위다(예시 데이터의 2025.08 수상 다음).
-      const awards = page.locator("#experience dt", { hasText: "수상" }).locator("xpath=following-sibling::dd[1]//li");
-      await expect(awards.last()).toContainText(title);
+      const rows = page.locator("#experience dd");
+      await expect(rows.filter({ hasText: title })).toContainText(/2024\.11$/);
+      // 가장 오래된 것이라 맨 아래다(예시 데이터의 2025.08 수상 다음).
+      await expect(rows.last()).toContainText(title);
     } finally {
       await page.goto("/admin/experiences");
       const panel = page.locator("section").filter({ has: page.locator(`input[value="${title}"]`) });

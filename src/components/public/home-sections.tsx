@@ -1,12 +1,7 @@
 import Link from "next/link";
 import { ArrowRightIcon } from "@/components/icons";
 import { TechLabel } from "@/components/tech-label";
-import type {
-  PublicCertificate,
-  PublicExperienceGroup,
-  PublicProjectCard,
-  PublicSkillGroup,
-} from "@/lib/data/public";
+import type { PublicCertificate, PublicExperience, PublicProjectCard, PublicSkillGroup } from "@/lib/data/public";
 import { formatDate, formatMonth, formatPeriod } from "@/lib/format";
 import { EXPERIENCE_KIND_LABEL } from "@/lib/validation/content";
 import { ProjectCard } from "./project-card";
@@ -24,52 +19,43 @@ export function ProjectsSection({ index, projects }: { index: number; projects: 
   );
 }
 
-type PublicExperience = PublicExperienceGroup["items"][number];
-
 /** 수상은 받은 달, 같은 달에 시작하고 끝난 것은 그 달 하나, 나머지는 기간 */
 function experiencePeriod(item: PublicExperience): string {
   if (item.kind === "AWARD" || item.endDate === item.startDate) return formatMonth(item.startDate);
   return formatPeriod(item.startDate, item.endDate || null);
 }
 
-export function ExperienceSection({ index, groups }: { index: number; groups: PublicExperienceGroup[] }) {
+/** 종류와 상관없이 최근 것부터 한 줄에 하나씩. 왼쪽에 종류(학력·교육·활동·수상)를 적는다. */
+export function ExperienceSection({ index, items }: { index: number; items: PublicExperience[] }) {
   return (
     <Section id="experience" index={index} title="경험">
       <dl className="divide-y divide-line border-y border-line">
-        {groups.map((group) => (
-          <div key={group.kind} className="grid gap-3 py-5 md:grid-cols-[11rem_1fr] md:gap-6 md:py-6">
-            <dt className="font-semibold">{EXPERIENCE_KIND_LABEL[group.kind]}</dt>
+        {items.map((item) => (
+          <div key={item.id} className="grid gap-3 py-5 md:grid-cols-[11rem_1fr] md:gap-6 md:py-6">
+            <dt className="font-semibold">{EXPERIENCE_KIND_LABEL[item.kind]}</dt>
             <dd>
-              <ul className="space-y-5">
-                {group.items.map((item) => (
-                  <li key={item.id}>
-                    <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
-                      <p>
-                        <span className="font-semibold">{item.title}</span>
-                        {item.subtitle ? <span className="text-muted"> · {item.subtitle}</span> : null}
-                      </p>
-                      <p className="shrink-0 text-[0.9375rem] text-muted tabular-nums">
-                        <span className="sr-only">{item.kind === "AWARD" ? "수상 " : "기간 "}</span>
-                        {experiencePeriod(item)}
-                      </p>
-                    </div>
-                    {item.description ? (
-                      <p className="mt-1.5 max-w-3xl text-[0.9375rem] whitespace-pre-line text-muted">
-                        {item.description}
-                      </p>
-                    ) : null}
-                    {item.project ? (
-                      <Link
-                        href={`/projects/${item.project.slug}`}
-                        className="mt-1.5 inline-flex items-center gap-1 text-[0.9375rem] font-medium text-accent-ink underline-offset-4 hover:underline"
-                      >
-                        관련 프로젝트: {item.project.title}
-                        <ArrowRightIcon className="size-3.5" />
-                      </Link>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
+              <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
+                <p>
+                  <span className="font-semibold">{item.title}</span>
+                  {item.subtitle ? <span className="text-muted"> · {item.subtitle}</span> : null}
+                </p>
+                <p className="shrink-0 text-[0.9375rem] text-muted tabular-nums">
+                  <span className="sr-only">{item.kind === "AWARD" ? "수상 " : "기간 "}</span>
+                  {experiencePeriod(item)}
+                </p>
+              </div>
+              {item.description ? (
+                <p className="mt-1.5 max-w-3xl text-[0.9375rem] whitespace-pre-line text-muted">{item.description}</p>
+              ) : null}
+              {item.project ? (
+                <Link
+                  href={`/projects/${item.project.slug}`}
+                  className="mt-1.5 inline-flex items-center gap-1 text-[0.9375rem] font-medium text-accent-ink underline-offset-4 hover:underline"
+                >
+                  관련 프로젝트: {item.project.title}
+                  <ArrowRightIcon className="size-3.5" />
+                </Link>
+              ) : null}
             </dd>
           </div>
         ))}
@@ -116,9 +102,7 @@ export function SkillsSection({ index, groups }: { index: number; groups: Public
                     }
                   >
                     <TechLabel name={skill.name} />
-                    <span className="sr-only">
-                      {skill.level === "USED" ? " (실무·프로젝트 사용)" : " (학습 경험)"}
-                    </span>
+                    <span className="sr-only">{skill.level === "USED" ? " (실무·프로젝트 사용)" : " (학습 경험)"}</span>
                   </li>
                 ))}
               </ul>
@@ -130,13 +114,7 @@ export function SkillsSection({ index, groups }: { index: number; groups: Public
   );
 }
 
-export function CertificatesSection({
-  index,
-  certificates,
-}: {
-  index: number;
-  certificates: PublicCertificate[];
-}) {
+export function CertificatesSection({ index, certificates }: { index: number; certificates: PublicCertificate[] }) {
   return (
     <Section id="certificates" index={index} title="자격증">
       <ul className="divide-y divide-line border-y border-line">

@@ -12,7 +12,7 @@ import {
 import { Section } from "@/components/public/section";
 import {
   getCertificates,
-  getExperienceGroups,
+  getExperiences,
   getProfile,
   getPublishedPosts,
   getPublishedProjects,
@@ -22,11 +22,11 @@ import {
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default async function HomePage() {
-  const [profile, posts, projects, experienceGroups, skillGroups, certificates] = await Promise.all([
+  const [profile, posts, projects, experiences, skillGroups, certificates] = await Promise.all([
     getProfile(),
     getPublishedPosts(),
     getPublishedProjects(),
-    getExperienceGroups(),
+    getExperiences(),
     getSkillGroups(),
     getCertificates(),
   ]);
@@ -44,7 +44,7 @@ export default async function HomePage() {
       />
       <Hero profile={profile} links={getProfileLinks(profile, posts.length > 0)} />
       {projects.length > 0 ? <ProjectsSection index={++index} projects={projects} /> : null}
-      {experienceGroups.length > 0 ? <ExperienceSection index={++index} groups={experienceGroups} /> : null}
+      {experiences.length > 0 ? <ExperienceSection index={++index} items={experiences} /> : null}
       {skillGroups.length > 0 ? <SkillsSection index={++index} groups={skillGroups} /> : null}
       {certificates.length > 0 ? (
         <CertificatesSection index={++index} certificates={certificates} />

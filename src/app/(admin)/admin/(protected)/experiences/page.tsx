@@ -176,7 +176,7 @@ export default async function ExperiencesPage() {
     <div className="max-w-4xl">
       <PageHeader
         title="경험"
-        description="학력 → 교육 → 활동 → 수상 순서로 묶이고, 묶음 안에서는 최근 것부터 공개 페이지에 표시됩니다."
+        description="종류와 상관없이 최근 것부터 공개 페이지에 표시됩니다(진행 중인 것이 맨 위, 수상은 받은 달 기준)."
       />
 
       <div className="space-y-4">

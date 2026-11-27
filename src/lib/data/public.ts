@@ -108,40 +108,44 @@ export async function getCertificates() {
 export type PublicCertificate = Awaited<ReturnType<typeof getCertificates>>[number];
 
 /**
- * 경험을 종류별로 묶는다. 묶음은 학력 → 교육 → 활동 → 수상 순서이고,
- * 각 묶음 안에서는 진행 중인 것, 최근에 끝난 것, 최근에 시작한 것 순서다.
+ * 경험 목록. 종류와 상관없이 최근 것부터 보여 준다.
+ * 진행 중인 것이 맨 위, 그다음은 끝난 달(수상은 받은 달)이 최근인 것, 같으면 시작한 달이 최근인 것 순서다.
  * 연결한 프로젝트는 공개 중일 때만 링크로 쓴다.
  */
-export async function getExperienceGroups() {
+export async function getExperiences() {
   "use cache";
   cacheLife("max");
   cacheTag(CACHE_TAGS.experiences, CACHE_TAGS.projects);
   const rows = await db.experience.findMany({
     include: { project: { select: { slug: true, title: true, isPublished: true } } },
   });
-  const latest = (row: { startDate: string; endDate: string }) => row.endDate || "9999-99";
-  rows.sort(
-    (a, b) =>
-      latest(b).localeCompare(latest(a)) || b.startDate.localeCompare(a.startDate) || a.id - b.id,
-  );
-  return EXPERIENCE_KINDS.map((kind) => ({
-    kind,
-    items: rows
-      .filter((row) => row.kind === kind)
-      .map((row) => ({
-        id: row.id,
-        kind: row.kind as ExperienceKind,
-        title: row.title,
-        subtitle: row.subtitle,
-        startDate: row.startDate,
-        endDate: row.endDate,
-        description: row.description,
-        project: row.project?.isPublished ? { slug: row.project.slug, title: row.project.title } : null,
-      })),
-  })).filter((group) => group.items.length > 0);
+  return rows
+    .filter((row) => (EXPERIENCE_KINDS as readonly string[]).includes(row.kind))
+    .sort(
+      (a, b) =>
+        experienceSortKey(b).localeCompare(experienceSortKey(a)) ||
+        b.startDate.localeCompare(a.startDate) ||
+        a.id - b.id,
+    )
+    .map((row) => ({
+      id: row.id,
+      kind: row.kind as ExperienceKind,
+      title: row.title,
+      subtitle: row.subtitle,
+      startDate: row.startDate,
+      endDate: row.endDate,
+      description: row.description,
+      project: row.project?.isPublished ? { slug: row.project.slug, title: row.project.title } : null,
+    }));
 }
 
-export type PublicExperienceGroup = Awaited<ReturnType<typeof getExperienceGroups>>[number];
+/** 정렬 기준 달. 수상은 받은 달, 종료일이 없으면 진행 중이라 가장 최근으로 본다. */
+export function experienceSortKey(row: { kind: string; startDate: string; endDate: string }): string {
+  if (row.kind === "AWARD") return row.startDate;
+  return row.endDate || "9999-99";
+}
+
+export type PublicExperience = Awaited<ReturnType<typeof getExperiences>>[number];
 
 function splitList(value: string): string[] {
   return value
@@ -235,9 +239,7 @@ const POST_CARD_SELECT = {
   project: { select: { slug: true, title: true, isPublished: true } },
 } as const;
 
-type PostCardRow = NonNullable<
-  Awaited<ReturnType<typeof db.post.findFirst<{ select: typeof POST_CARD_SELECT }>>>
->;
+type PostCardRow = NonNullable<Awaited<ReturnType<typeof db.post.findFirst<{ select: typeof POST_CARD_SELECT }>>>>;
 
 /** 연결한 프로젝트는 공개 중일 때만 링크로 쓴다. */
 function toPostCard(row: PostCardRow) {
@@ -296,9 +298,7 @@ export async function getPublishedPost(slug: string) {
 
 export const POST_DETAIL_SELECT = { ...POST_CARD_SELECT, body: true, updatedAt: true } as const;
 
-type PostDetailRow = NonNullable<
-  Awaited<ReturnType<typeof db.post.findFirst<{ select: typeof POST_DETAIL_SELECT }>>>
->;
+type PostDetailRow = NonNullable<Awaited<ReturnType<typeof db.post.findFirst<{ select: typeof POST_DETAIL_SELECT }>>>>;
 
 /** DB 의 글을 상세 화면에서 쓰는 형태로 바꾼다. 공개 페이지와 관리자 미리보기가 함께 쓴다. */
 export function toPostDetail(post: PostDetailRow) {
