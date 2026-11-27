@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type ChangeEvent } from "react";
+import { flushSync } from "react-dom";
 import { savePost } from "@/actions/content";
 import type { ImageUploadResponse } from "@/app/api/admin/upload/image/route";
 import { buttonClass } from "@/components/ui/button";
@@ -103,6 +104,9 @@ export function PostForm({
     const textarea = bodyRef.current;
     const start = textarea?.selectionStart ?? values.body.length;
     const end = textarea?.selectionEnd ?? start;
+    // 넣은 뒤에도 보던 자리를 그대로 보여 주도록, 고르기 전의 입력칸·화면 스크롤 위치를 기억한다.
+    const scrollTop = textarea?.scrollTop ?? 0;
+    const pageScroll = { x: window.scrollX, y: window.scrollY };
 
     setUploading(true);
     setUploadError(null);
@@ -119,16 +123,21 @@ export function PostForm({
     if (inserted.length === 0) return;
 
     const snippet = `\n${inserted.join("\n\n")}\n`;
-    setValues((current) => ({
-      ...current,
-      body: current.body.slice(0, start) + snippet + current.body.slice(end),
-    }));
-    // 넣은 뒤 커서를 이미지 문법 바로 뒤로 옮긴다.
-    requestAnimationFrame(() => {
-      const position = start + snippet.length;
-      bodyRef.current?.focus();
-      bodyRef.current?.setSelectionRange(position, position);
-    });
+    // 본문을 바로 화면에 반영한 뒤(flushSync) 커서와 스크롤을 맞춘다.
+    // 값을 바꾸면 브라우저가 커서를 끝으로 옮기고 맨 아래로 스크롤하므로, 반영이 끝난 다음에 되돌려야 한다.
+    flushSync(() =>
+      setValues((current) => ({
+        ...current,
+        body: current.body.slice(0, start) + snippet + current.body.slice(end),
+      })),
+    );
+    const target = bodyRef.current;
+    if (!target) return;
+    const position = start + snippet.length;
+    target.focus({ preventScroll: true });
+    target.setSelectionRange(position, position);
+    target.scrollTop = scrollTop;
+    window.scrollTo(pageScroll.x, pageScroll.y);
   }
 
   function handleSubmit(event: React.FormEvent) {

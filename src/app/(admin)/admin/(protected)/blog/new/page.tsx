@@ -30,7 +30,7 @@ export default async function NewPostPage({ searchParams }: PageProps<"/admin/bl
     body: POST_BODY_TEMPLATES.TROUBLESHOOTING,
     tags: "",
     date: kstDate(),
-    isPublished: false,
+    isPublished: true,
     projectId: linked ? String(linked.id) : "",
   };
 

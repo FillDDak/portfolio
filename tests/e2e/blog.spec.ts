@@ -1,3 +1,4 @@
+import sharp from "sharp";
 import { expect, loginAsAdmin, test } from "./fixtures";
 
 test.describe("블로그", () => {
@@ -188,7 +189,8 @@ test.describe("블로그", () => {
     await page.locator("#post-date").fill("2026-01-05");
     // 앞에서 본 프로젝트 수정 화면이 숨긴 채로 남아 있으므로 글 폼 안에서만 찾는다.
     const form = page.locator("form").filter({ has: page.locator("#post-title") });
-    await form.getByLabel(/^공개/).check();
+    // 새 글은 공개로 시작한다.
+    await expect(form.getByLabel(/^공개/)).toBeChecked();
     await form.getByRole("button", { name: "저장" }).click();
     await expect(page).toHaveURL(/\/admin\/blog\/\d+$/);
 
@@ -209,5 +211,44 @@ test.describe("블로그", () => {
     }
     const response = await page.goto(`/blog/${slug}`);
     expect(response?.status()).toBe(404);
+  });
+
+  test("본문에 이미지를 넣어도 입력칸과 화면이 스크롤되지 않고, 커서 자리에 들어간다", async ({ page }) => {
+    await loginAsAdmin(page);
+    await page.goto("/admin/blog/new");
+    const body = page.locator("#post-body");
+    const lines = Array.from({ length: 120 }, (_, index) => `${index + 1}번째 줄`).join("\n");
+    await body.fill(lines);
+    // 본문 중간(60번째 줄 앞)을 클릭해 커서를 두고, 그 부분이 보이게 입력칸을 스크롤해 둔다.
+    await body.scrollIntoViewIfNeeded();
+    const { caret, scrollTop } = await body.evaluate((element: HTMLTextAreaElement) => {
+      element.focus();
+      const at = element.value.indexOf("60번째 줄");
+      element.setSelectionRange(at, at);
+      element.scrollTop = element.scrollHeight / 2 - element.clientHeight / 2;
+      // '이미지 넣기'를 누르면 포커스가 입력칸을 떠난다.
+      element.blur();
+      return { caret: at, scrollTop: element.scrollTop };
+    });
+    const pageY = await page.evaluate(() => window.scrollY);
+
+    const image = await sharp({ create: { width: 40, height: 30, channels: 3, background: "#2040d0" } }).png().toBuffer();
+    await page
+      .locator("form")
+      .filter({ has: page.locator("#post-title") })
+      .locator('input[type="file"]')
+      .setInputFiles({ name: "shot.png", mimeType: "image/png", buffer: image });
+
+    await expect(body).toHaveValue(/59번째 줄\n\n!\[이미지 설명\]\(\/uploads\/[\w.-]+\)\n60번째 줄/);
+    const after = await body.evaluate((element: HTMLTextAreaElement) => ({
+      scrollTop: element.scrollTop,
+      caret: element.selectionStart,
+      focused: document.activeElement === element,
+    }));
+    // 입력칸은 보던 자리 그대로이고, 커서는 넣은 이미지 문법 바로 뒤에 있다.
+    expect(Math.abs(after.scrollTop - scrollTop)).toBeLessThan(2);
+    expect(after.focused).toBe(true);
+    expect(after.caret).toBeGreaterThan(caret);
+    expect(Math.abs((await page.evaluate(() => window.scrollY)) - pageY)).toBeLessThan(2);
   });
 });
