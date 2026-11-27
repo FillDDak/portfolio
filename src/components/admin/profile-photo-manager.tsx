@@ -70,13 +70,13 @@ export function ProfilePhotoManager({
     <div>
       <div className="flex flex-wrap items-center gap-4">
         {photoUrl && source ? null : photoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- 업로드 시 이미 정사각형 webp 로 변환했다
+          // eslint-disable-next-line @next/next/no-img-element -- 업로드 시 이미 크기를 맞춘 webp 로 변환했다
           <img
             src={photoUrl}
             alt="현재 프로필 사진"
             width={96}
-            height={96}
-            className="size-24 rounded-2xl border border-line object-cover"
+            height={128}
+            className="h-32 w-24 rounded-2xl border border-line object-cover"
           />
         ) : (
           <div
@@ -110,7 +110,7 @@ export function ProfilePhotoManager({
         </div>
       </div>
       <p className="mt-2 text-sm text-muted">
-        jpg, png, webp / 5MB 이하. 정사각형으로 잘리며 보이는 부분은 아래에서 고를 수 있습니다. 위치 정보 등
+        jpg, png, webp / 5MB 이하. 가로 3 : 세로 4 으로 잘리며 보이는 부분은 아래에서 고를 수 있습니다. 위치 정보 등
         부가 정보는 지워집니다.
       </p>
       {photoUrl && !source ? (

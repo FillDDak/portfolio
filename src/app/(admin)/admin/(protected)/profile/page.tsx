@@ -17,13 +17,18 @@ export const metadata: Metadata = { title: "자기소개·링크" };
 export default async function ProfilePage() {
   await requireAdmin();
   const profile = await db.profile.findUniqueOrThrow({ where: { id: 1 } });
-  const sourceSize = profile.photoSourceFile ? await readImageSize(profile.photoSourceFile) : null;
+  const [sourceSize, photoSize] = await Promise.all([
+    profile.photoSourceFile ? readImageSize(profile.photoSourceFile) : null,
+    profile.photoFile ? readImageSize(profile.photoFile) : null,
+  ]);
   const photoSource =
     profile.photoSourceFile && sourceSize
       ? {
           url: `/uploads/${profile.photoSourceFile}`,
           ...sourceSize,
           crop: { x: profile.photoFocusX, y: profile.photoFocusY, zoom: profile.photoZoom },
+          // 예전에 정사각형으로 만든 사진이면 지금 비율(3:4)로 다시 만들어야 한다.
+          outdated: photoSize !== null && photoSize.width * 4 !== photoSize.height * 3,
         }
       : null;
 

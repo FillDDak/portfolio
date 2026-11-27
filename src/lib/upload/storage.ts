@@ -4,7 +4,7 @@ import { mkdir, readFile, stat, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 import { getEnv } from "@/lib/env";
-import { clampCrop, cropRect, DEFAULT_PHOTO_CROP, type PhotoCrop } from "@/lib/profile-photo/crop";
+import { clampCrop, cropRect, cropSize, DEFAULT_PHOTO_CROP, type PhotoCrop } from "@/lib/profile-photo/crop";
 import { checkImageUpload, checkPdfUpload, isSafeStoredName } from "./file-type";
 
 // 메모리가 1GB 인 서버라서 sharp 가 캐시와 스레드를 많이 쓰지 않게 한다.
@@ -67,8 +67,9 @@ export async function saveImage(bytes: Uint8Array) {
   return { file: name, width, height, bytes: output.length };
 }
 
-/** 프로필 사진 한 변의 크기(px). 화면에는 최대 288px 로 보이므로 고해상도 화면까지 넉넉하다. */
-export const PROFILE_PHOTO_SIZE = 800;
+/** 프로필 사진 크기(px, 가로 3 : 세로 4). 화면에는 최대 288×384px 로 보이므로 고해상도 화면까지 넉넉하다. */
+export const PROFILE_PHOTO_WIDTH = 720;
+export const PROFILE_PHOTO_HEIGHT = 960;
 
 /** 프로필 사진 원본을 보관할 때의 긴 변 최대 크기. 확대(최대 3배)해도 화면에 쓸 만큼 남긴다. */
 const PROFILE_SOURCE_MAX_DIMENSION = 1600;
@@ -108,15 +109,21 @@ export async function saveProfilePhotoSource(bytes: Uint8Array) {
     width = result.info.width;
     height = result.info.height;
 
-    const side = Math.min(width, height);
-    if (width !== height) {
+    const size = cropSize(width, height, 1);
+    const cropWidth = Math.round(size.width);
+    const cropHeight = Math.round(size.height);
+    if (cropWidth < width || cropHeight < height) {
       const { info } = await sharp(output)
-        .resize({ width: side, height: side, fit: "cover", position: sharp.strategy.attention })
+        .resize({ width: cropWidth, height: cropHeight, fit: "cover", position: sharp.strategy.attention })
         .toBuffer({ resolveWithObject: true });
       // 잘린 위치는 음수(왼쪽·위쪽으로 밀린 거리)로 온다.
-      const left = Math.abs(info.cropOffsetLeft ?? (width - side) / 2);
-      const top = Math.abs(info.cropOffsetTop ?? (height - side) / 2);
-      crop = clampCrop({ x: (left + side / 2) / width, y: (top + side / 2) / height, zoom: 1 }, width, height);
+      const left = Math.abs(info.cropOffsetLeft ?? (width - cropWidth) / 2);
+      const top = Math.abs(info.cropOffsetTop ?? (height - cropHeight) / 2);
+      crop = clampCrop(
+        { x: (left + cropWidth / 2) / width, y: (top + cropHeight / 2) / height, zoom: 1 },
+        width,
+        height,
+      );
     }
   } catch {
     throw new UploadError("이미지를 읽지 못했습니다. 파일이 손상되지 않았는지 확인해 주세요.");
@@ -125,7 +132,7 @@ export async function saveProfilePhotoSource(bytes: Uint8Array) {
   return { file: await writeImage(output), width, height, crop };
 }
 
-/** 보관한 원본에서 정한 부분을 정사각형으로 잘라 새 파일로 저장한다. 실제로 쓴(범위를 맞춘) 위치도 돌려준다. */
+/** 보관한 원본에서 정한 부분을 가로 3 : 세로 4 으로 잘라 새 파일로 저장한다. 실제로 쓴(범위를 맞춘) 위치도 돌려준다. */
 export async function renderProfilePhoto(sourceName: string, crop: PhotoCrop) {
   const stored = await readStored("images", sourceName);
   if (!stored) throw new UploadError("원본 사진을 찾지 못했습니다. 사진을 다시 올려 주세요.");
@@ -135,10 +142,10 @@ export async function renderProfilePhoto(sourceName: string, crop: PhotoCrop) {
   if (!width || !height) throw new UploadError("원본 사진을 읽지 못했습니다. 사진을 다시 올려 주세요.");
 
   const fitted = clampCrop(crop, width, height);
-  const { left, top, size } = cropRect(fitted, width, height);
+  const rect = cropRect(fitted, width, height);
   const output = await image
-    .extract({ left, top, width: size, height: size })
-    .resize({ width: PROFILE_PHOTO_SIZE, height: PROFILE_PHOTO_SIZE })
+    .extract(rect)
+    .resize({ width: PROFILE_PHOTO_WIDTH, height: PROFILE_PHOTO_HEIGHT, fit: "fill" })
     .webp({ quality: 85 })
     .toBuffer();
   return { file: await writeImage(output), crop: fitted };

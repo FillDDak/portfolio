@@ -6,37 +6,47 @@ import type { ProfilePhotoResponse } from "@/app/api/admin/profile-photo/route";
 import { buttonClass } from "@/components/ui/button";
 import {
   clampCrop,
+  cropSize,
+  PHOTO_ASPECT,
   PHOTO_ZOOM_MAX,
   PHOTO_ZOOM_MIN,
   type PhotoCrop,
 } from "@/lib/profile-photo/crop";
 
-export type PhotoSource = { url: string; width: number; height: number; crop: PhotoCrop };
+/** outdated: 공개 화면의 사진이 예전 비율(정사각형)이라 위치를 다시 저장해야 한다. */
+export type PhotoSource = { url: string; width: number; height: number; crop: PhotoCrop; outdated?: boolean };
 
-/** 편집 상자 한 변(px). 휴대폰 화면에도 들어가는 크기. */
-const EDITOR_SIZE = 240;
+/** 편집 상자 크기(px, 가로 3 : 세로 4). 휴대폰 화면에도 들어가는 크기. */
+const EDITOR_WIDTH = 240;
+const EDITOR_HEIGHT = EDITOR_WIDTH / PHOTO_ASPECT;
+/** 모바일 첫 화면의 동그란 사진 지름(px). 3:4 사진의 가운데가 보인다. */
+const MOBILE_SIZE = 80;
 /** 방향키 한 번에 움직이는 거리(편집 상자 기준 px) */
 const KEY_STEP = 8;
 
-/** 원본 사진을 정해진 위치·배율로 잘라 보여 준다. 서버가 자르는 것과 같은 계산을 쓴다. */
+/**
+ * 원본 사진을 정해진 위치·배율로 잘라 보여 준다. 서버가 자르는 것과 같은 계산을 쓴다.
+ * 상자의 비율이 3:4 가 아니면(모바일의 동그란 사진) 3:4 영역의 가운데를 상자 비율로 보여 준다(object-cover 와 같다).
+ */
 function CropView({
   source,
   crop,
-  size,
+  width,
+  height,
   className,
 }: {
   source: PhotoSource;
   crop: PhotoCrop;
-  size: number;
+  width: number;
+  height: number;
   className: string;
 }) {
-  const shortSide = Math.min(source.width, source.height);
-  const scale = (size / shortSide) * crop.zoom;
-  const side = shortSide / crop.zoom;
-  const left = crop.x * source.width - side / 2;
-  const top = crop.y * source.height - side / 2;
+  const area = cropSize(source.width, source.height, crop.zoom);
+  const scale = Math.max(width / area.width, height / area.height);
+  const left = crop.x * source.width - width / scale / 2;
+  const top = crop.y * source.height - height / scale / 2;
   return (
-    <div className={`relative shrink-0 overflow-hidden bg-surface-2 ${className}`} style={{ width: size, height: size }}>
+    <div className={`relative shrink-0 overflow-hidden bg-surface-2 ${className}`} style={{ width, height }}>
       {/* eslint-disable-next-line @next/next/no-img-element -- 관리자 미리보기용 원본 */}
       <img
         src={source.url}
@@ -56,13 +66,14 @@ function CropView({
 /** 보이는 부분 고르기: 사진을 끌거나 방향키로 옮기고, 막대로 확대한다. */
 export function ProfilePhotoPosition({ source }: { source: PhotoSource }) {
   const router = useRouter();
-  const [crop, setCrop] = useState<PhotoCrop>(source.crop);
+  // 저장된 위치는 예전 비율(정사각형) 기준일 수 있어서 지금 비율의 범위로 맞춰 시작한다.
+  const [crop, setCrop] = useState<PhotoCrop>(() => clampCrop(source.crop, source.width, source.height));
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const drag = useRef<{ pointerId: number; startX: number; startY: number; crop: PhotoCrop } | null>(null);
 
-  const shortSide = Math.min(source.width, source.height);
   const changed =
+    Boolean(source.outdated) ||
     Math.abs(crop.x - source.crop.x) > 1e-4 ||
     Math.abs(crop.y - source.crop.y) > 1e-4 ||
     Math.abs(crop.zoom - source.crop.zoom) > 1e-4;
@@ -74,7 +85,7 @@ export function ProfilePhotoPosition({ source }: { source: PhotoSource }) {
 
   /** 편집 상자에서 dx, dy(px) 만큼 사진을 끌었을 때의 새 위치. 사진을 오른쪽으로 끌면 보이는 부분은 왼쪽으로 간다. */
   function moved(from: PhotoCrop, dx: number, dy: number): PhotoCrop {
-    const scale = (EDITOR_SIZE / shortSide) * from.zoom;
+    const scale = EDITOR_WIDTH / cropSize(source.width, source.height, from.zoom).width;
     return { ...from, x: from.x - dx / scale / source.width, y: from.y - dy / scale / source.height };
   }
 
@@ -144,6 +155,12 @@ export function ProfilePhotoPosition({ source }: { source: PhotoSource }) {
       <p className="mb-2 text-[0.9375rem] font-medium" id="photo-position-label">
         보이는 부분
       </p>
+      {source.outdated ? (
+        <p className="mb-3 rounded-lg bg-accent-soft px-3.5 py-2.5 text-[0.9375rem] text-accent-ink">
+          사진 비율이 가로 3 : 세로 4 으로 바뀌었습니다. 보이는 부분을 확인하고 위치 저장을 누르면 공개 화면 사진이 새
+          비율로 바뀝니다.
+        </p>
+      ) : null}
       <div className="flex flex-wrap items-start gap-5">
         <div
           role="group"
@@ -158,12 +175,24 @@ export function ProfilePhotoPosition({ source }: { source: PhotoSource }) {
           data-testid="photo-position-editor"
           className="cursor-grab touch-none rounded-3xl outline-offset-4 active:cursor-grabbing"
         >
-          <CropView source={source} crop={crop} size={EDITOR_SIZE} className="rounded-3xl border border-line" />
+          <CropView
+            source={source}
+            crop={crop}
+            width={EDITOR_WIDTH}
+            height={EDITOR_HEIGHT}
+            className="rounded-3xl border border-line"
+          />
         </div>
 
         <div className="min-w-0 flex-1 basis-48">
           <p className="text-sm text-muted">모바일 미리보기</p>
-          <CropView source={source} crop={crop} size={80} className="mt-1.5 rounded-full border border-line" />
+          <CropView
+            source={source}
+            crop={crop}
+            width={MOBILE_SIZE}
+            height={MOBILE_SIZE}
+            className="mt-1.5 rounded-full border border-line"
+          />
 
           <label htmlFor="photo-zoom" className="mt-4 block text-sm font-medium">
             확대 <span className="font-mono text-muted">{crop.zoom.toFixed(1)}배</span>

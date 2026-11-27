@@ -125,7 +125,7 @@ export function Hero({ profile, links }: { profile: PublicProfile; links: Profil
         {photo ? (
           <ProfilePhoto
             photo={photo}
-            className="hidden size-60 shrink-0 rounded-3xl border border-line md:block lg:size-72"
+            className="hidden h-80 w-60 shrink-0 rounded-3xl border border-line md:block lg:h-96 lg:w-72"
           />
         ) : null}
       </div>
@@ -134,7 +134,7 @@ export function Hero({ profile, links }: { profile: PublicProfile; links: Profil
 }
 
 /**
- * 업로드 시 이미 800px 정사각형 webp 로 만들어 두었다.
+ * 업로드 시 이미 720×960px(가로 3 : 세로 4) webp 로 만들어 두었다. 모바일의 동그란 사진은 그 가운데가 보인다.
  * 모바일용과 PC용이 같은 주소라서 브라우저는 한 번만 내려받는다(보이지 않는 쪽은 화면 읽기 프로그램도 건너뛴다).
  */
 function ProfilePhoto({ photo, className }: { photo: { url: string; alt: string }; className: string }) {
@@ -143,8 +143,8 @@ function ProfilePhoto({ photo, className }: { photo: { url: string; alt: string 
     <img
       src={photo.url}
       alt={photo.alt}
-      width={800}
-      height={800}
+      width={720}
+      height={960}
       fetchPriority="high"
       className={`bg-surface-2 object-cover ${className}`}
     />

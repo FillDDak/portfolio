@@ -18,12 +18,12 @@ async function homePhotoColor(page: Page, alt: string) {
   await page.goto("/");
   const src = await page.getByRole("img", { name: alt }).getAttribute("src");
   const body = await (await page.request.get(src!)).body();
-  const { data } = await sharp(body).extract({ left: 400, top: 400, width: 1, height: 1 }).raw().toBuffer({ resolveWithObject: true });
+  const { data } = await sharp(body).extract({ left: 360, top: 480, width: 1, height: 1 }).raw().toBuffer({ resolveWithObject: true });
   return data[0] > data[2] ? "red" : "blue";
 }
 
 test.describe("프로필 사진", () => {
-  test("관리자에서 올린 사진이 첫 화면에 정사각형으로 보이고, 지우면 사라진다", async ({ page }, testInfo) => {
+  test("관리자에서 올린 사진이 첫 화면에 PC 는 3:4, 모바일은 동그랗게 보이고, 지우면 사라진다", async ({ page }, testInfo) => {
     await loginAsAdmin(page);
     await page.goto("/admin/profile");
     const panel = page.locator("section").filter({ has: page.getByRole("heading", { name: "프로필 사진" }) });
@@ -45,13 +45,13 @@ test.describe("프로필 사진", () => {
       const photo = page.getByRole("img", { name: `${name} 프로필 사진` });
       await expect(photo).toHaveCount(1);
       await expect(photo).toBeVisible();
-      // 서버에서 800px 정사각형으로 잘랐다.
-      expect(await photo.evaluate((img: HTMLImageElement) => [img.naturalWidth, img.naturalHeight])).toEqual([800, 800]);
+      // 서버에서 720×960px(3:4)으로 잘랐다.
+      expect(await photo.evaluate((img: HTMLImageElement) => [img.naturalWidth, img.naturalHeight])).toEqual([720, 960]);
 
       const photoBox = (await photo.boundingBox())!;
       const headingBox = (await page.locator("#hero-heading").boundingBox())!;
-      expect(Math.round(photoBox.width)).toBe(Math.round(photoBox.height));
       if (testInfo.project.name === "mobile") {
+        expect(Math.round(photoBox.width)).toBe(Math.round(photoBox.height));
         // 모바일: 이름 옆 작은 사진이고, 첫 화면에서 문의 버튼이 밀려나지 않는다.
         expect(photoBox.width).toBeLessThanOrEqual(96);
         expect(photoBox.x + photoBox.width).toBeLessThanOrEqual(headingBox.x);
@@ -59,8 +59,9 @@ test.describe("프로필 사진", () => {
         const contactBox = (await contact.boundingBox())!;
         expect(contactBox.y + contactBox.height).toBeLessThanOrEqual(page.viewportSize()!.height);
       } else {
-        // PC: 글 오른쪽에 크게 보인다.
-        expect(photoBox.width).toBeGreaterThanOrEqual(200);
+        // PC: 글 오른쪽에 3:4 로 크게 보인다.
+        expect(Math.round((photoBox.width / photoBox.height) * 100)).toBe(75);
+        expect(photoBox.height).toBeGreaterThanOrEqual(300);
         expect(photoBox.x).toBeGreaterThan(headingBox.x + headingBox.width);
       }
       expect(
