@@ -10,6 +10,7 @@ import {
   getCertificates,
   getExperienceGroups,
   getProfile,
+  getPublishedPosts,
   getPublishedProjects,
   getSkillGroups,
 } from "@/lib/data/public";
@@ -35,16 +36,17 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PublicLayout({ children }: LayoutProps<"/">) {
-  const [profile, projects, experienceGroups, skillGroups, certificates, monitors] = await Promise.all([
+  const [profile, projects, posts, experienceGroups, skillGroups, certificates, monitors] = await Promise.all([
     getProfile(),
     getPublishedProjects(),
+    getPublishedPosts(),
     getExperienceGroups(),
     getSkillGroups(),
     getCertificates(),
     getActiveMonitors(),
   ]);
 
-  // 내용이 있는 섹션만 메뉴에 넣는다.
+  // 메뉴는 홈의 섹션 목록이다. 내용이 있는 섹션만 넣는다.
   const items: NavItem[] = [
     { href: "/#about", label: "소개" },
     projects.length > 0 && { href: "/#projects", label: "프로젝트" },
@@ -52,8 +54,9 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
     skillGroups.length > 0 && { href: "/#skills", label: "스킬" },
     certificates.length > 0 && { href: "/#certificates", label: "자격증" },
     // 문의 섹션은 헤더의 '문의하기' 버튼이 맡으므로 메뉴에 따로 넣지 않는다.
+    // 블로그는 홈 섹션이 아니라서 메뉴 대신 GitHub·Notion 과 같은 줄(첫 화면, 모바일 메뉴, 푸터)에 둔다.
   ].filter((item): item is NavItem => Boolean(item));
-  const links = getProfileLinks(profile);
+  const links = getProfileLinks(profile, posts.length > 0);
 
   return (
     <>

@@ -3,11 +3,16 @@ import { ArrowUpRightIcon, GitHubIcon, MailIcon, NoteIcon } from "@/components/i
 import { Markdown } from "@/components/markdown";
 import { TechLabel } from "@/components/tech-label";
 import { buttonClass } from "@/components/ui/button";
-import type { PublicProject } from "@/lib/data/public";
+import type { PublicPostCard, PublicProject } from "@/lib/data/public";
 import { formatPeriod } from "@/lib/format";
+import { PostList } from "./post-list";
 
 /** 프로젝트 상세 본문. 공개 상세 페이지와 관리자 미리보기가 같은 화면을 쓴다. */
-export function ProjectArticle({ project }: { project: PublicProject }) {
+export function ProjectArticle({ project, posts = [] }: { project: PublicProject; posts?: PublicPostCard[] }) {
+  const hasTroubleshooting = posts.some((post) => post.category === "TROUBLESHOOTING");
+  const hasOther = posts.some((post) => post.category !== "TROUBLESHOOTING");
+  const postsHeading = hasTroubleshooting ? (hasOther ? "트러블슈팅 · 관련 글" : "트러블슈팅") : "관련 글";
+
   const links = [
     { key: "demo", label: "데모", url: project.demoUrl, Icon: ArrowUpRightIcon },
     { key: "github", label: "GitHub", url: project.githubUrl, Icon: GitHubIcon },
@@ -114,6 +119,18 @@ export function ProjectArticle({ project }: { project: PublicProject }) {
         <div className="mt-10">
           <Markdown>{project.body}</Markdown>
         </div>
+      ) : null}
+
+      {posts.length > 0 ? (
+        <section aria-labelledby="posts-heading" className="mt-12 border-t border-line pt-8">
+          <h2 id="posts-heading" className="text-2xl font-bold tracking-tight">
+            {postsHeading}
+          </h2>
+          <p className="mt-1.5 text-muted">이 프로젝트를 진행하며 겪은 문제와 해결 과정을 글로 정리했습니다.</p>
+          <div className="mt-4">
+            <PostList posts={posts} headingLevel="h3" showProject={false} />
+          </div>
+        </section>
       ) : null}
 
       {project.images.length > 0 ? (

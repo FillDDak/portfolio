@@ -1,15 +1,15 @@
-import { ArrowUpRightIcon, FileIcon, MailIcon } from "@/components/icons";
+import Link from "next/link";
+import { ArrowRightIcon, ArrowUpRightIcon, FileIcon, MailIcon } from "@/components/icons";
 import { buttonClass } from "@/components/ui/button";
 import { TechLabel } from "@/components/tech-label";
 import type { PublicProfile } from "@/lib/data/public";
-import { getProfileLinks, profileLinkIcons } from "./profile-links";
+import { linkTargetProps, profileLinkIcons, type ProfileLink } from "./profile-links";
 
 /**
  * 첫 화면. 스크롤 없이 이름, 직무, 한 줄 소개, 핵심 스택, 주요 버튼이 보여야 한다.
- * 값이 없는 항목(핵심 스택, PDF, 외부 링크)은 자리 자체를 만들지 않는다.
+ * 값이 없는 항목(핵심 스택, PDF, 링크)은 자리 자체를 만들지 않는다.
  */
-export function Hero({ profile }: { profile: PublicProfile }) {
-  const links = getProfileLinks(profile);
+export function Hero({ profile, links }: { profile: PublicProfile; links: ProfileLink[] }) {
   const photo = profile.photoUrl ? { url: profile.photoUrl, alt: `${profile.name} 프로필 사진` } : null;
 
   return (
@@ -59,7 +59,7 @@ export function Hero({ profile }: { profile: PublicProfile }) {
             </div>
           ) : null}
 
-          {/* 이 사이트 안에서 하는 행동(문의, PDF)은 버튼으로 두고, 외부 프로필은 그 아래 가벼운 링크 한 줄로 둔다. */}
+          {/* 문의와 PDF 는 버튼으로 두고, GitHub·블로그·Notion 은 그 아래 가벼운 링크 한 줄로 둔다. */}
           <div className="mt-6 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap md:mt-9 md:gap-3">
             <a
               href="#contact"
@@ -84,27 +84,36 @@ export function Hero({ profile }: { profile: PublicProfile }) {
           </div>
 
           {links.length > 0 ? (
-            <ul aria-label="외부 프로필" className="mt-3 flex flex-wrap gap-x-5 md:mt-4">
+            <ul aria-label="프로필 링크" className="mt-3 flex flex-wrap gap-x-5 md:mt-4">
               {links.map((link) => {
                 const Icon = profileLinkIcons[link.key];
                 return (
                   <li key={link.key}>
-                    <a
+                    <Link
                       href={link.url}
                       data-track={`link:profile:${link.key}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      {...linkTargetProps(link)}
                       className="group -mx-1 inline-flex min-h-11 items-center gap-2 px-1 text-[0.9375rem] font-semibold text-muted transition-colors hover:text-foreground"
                     >
                       <Icon width={18} height={18} />
                       {link.label}
-                      <ArrowUpRightIcon
-                        width={14}
-                        height={14}
-                        className="transition-colors group-hover:text-accent-ink"
-                      />
-                      <span className="sr-only">(새 탭에서 열림)</span>
-                    </a>
+                      {link.external ? (
+                        <>
+                          <ArrowUpRightIcon
+                            width={14}
+                            height={14}
+                            className="transition-colors group-hover:text-accent-ink"
+                          />
+                          <span className="sr-only">(새 탭에서 열림)</span>
+                        </>
+                      ) : (
+                        <ArrowRightIcon
+                          width={14}
+                          height={14}
+                          className="transition-colors group-hover:text-accent-ink"
+                        />
+                      )}
+                    </Link>
                   </li>
                 );
               })}

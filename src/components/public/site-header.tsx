@@ -38,7 +38,7 @@ export function SiteHeader({ items, links }: { items: NavItem[]; links: ProfileL
               ))}
             </ul>
           </nav>
-          {/* 외부 프로필 링크는 PC 헤더에 두지 않는다(첫 화면과 푸터에 있다). 모바일은 메뉴 시트 안에 둔다. */}
+          {/* GitHub·블로그·Notion 링크는 PC 헤더에 두지 않는다(첫 화면과 푸터에 있다). 모바일은 메뉴 시트 안에 둔다. */}
           <ThemeToggle />
           <div className="ml-2 hidden md:block">
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}

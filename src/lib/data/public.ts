@@ -1,5 +1,6 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
+import { toPostCategory } from "@/lib/post-category";
 import { EXPERIENCE_KINDS, type ExperienceKind } from "@/lib/validation/content";
 
 /**
@@ -12,6 +13,7 @@ export const CACHE_TAGS = {
   skills: "skills",
   certificates: "certificates",
   experiences: "experiences",
+  posts: "posts",
   monitors: "monitors",
 } as const;
 
@@ -30,7 +32,6 @@ export async function getProfile() {
     bio: profile.bio,
     coreStack: splitList(profile.coreStack),
     githubUrl: profile.githubUrl,
-    velogUrl: profile.velogUrl,
     notionUrl: profile.notionUrl,
     contactEmail: profile.contactEmail,
     hasResume: Boolean(profile.resumeFile),
@@ -213,6 +214,105 @@ export async function getPublishedProjectDates() {
     select: { slug: true, updatedAt: true },
   });
   return projects.map(({ slug, updatedAt }) => ({ slug, updatedAt: updatedAt.toISOString() }));
+}
+
+/* ── 글 ─────────────────────────────────────────────────── */
+
+const POST_ORDER = [{ date: "desc" }, { id: "desc" }] as const;
+
+const POST_CARD_SELECT = {
+  id: true,
+  category: true,
+  title: true,
+  slug: true,
+  summary: true,
+  tags: true,
+  date: true,
+  project: { select: { slug: true, title: true, isPublished: true } },
+} as const;
+
+type PostCardRow = NonNullable<
+  Awaited<ReturnType<typeof db.post.findFirst<{ select: typeof POST_CARD_SELECT }>>>
+>;
+
+/** 연결한 프로젝트는 공개 중일 때만 링크로 쓴다. */
+function toPostCard(row: PostCardRow) {
+  return {
+    id: row.id,
+    category: toPostCategory(row.category),
+    title: row.title,
+    slug: row.slug,
+    summary: row.summary,
+    tags: splitList(row.tags),
+    date: row.date,
+    project: row.project?.isPublished ? { slug: row.project.slug, title: row.project.title } : null,
+  };
+}
+
+export type PublicPostCard = ReturnType<typeof toPostCard>;
+
+/** 공개된 글 목록(최신순) */
+export async function getPublishedPosts() {
+  "use cache";
+  cacheLife("max");
+  cacheTag(CACHE_TAGS.posts, CACHE_TAGS.projects);
+  const rows = await db.post.findMany({
+    where: { isPublished: true },
+    orderBy: [...POST_ORDER],
+    select: POST_CARD_SELECT,
+  });
+  return rows.map(toPostCard);
+}
+
+/** 프로젝트에 연결된 공개 글. 프로젝트 상세 페이지 아래에 보여 준다(오래된 것부터, 겪은 순서대로). */
+export async function getProjectPosts(projectId: number) {
+  "use cache";
+  cacheLife("max");
+  cacheTag(CACHE_TAGS.posts, CACHE_TAGS.projects);
+  const rows = await db.post.findMany({
+    where: { isPublished: true, projectId },
+    orderBy: [{ date: "asc" }, { id: "asc" }],
+    select: POST_CARD_SELECT,
+  });
+  return rows.map(toPostCard);
+}
+
+/** 공개된 글 한 건. 없거나 비공개면 null. */
+export async function getPublishedPost(slug: string) {
+  "use cache";
+  cacheLife("max");
+  cacheTag(CACHE_TAGS.posts, CACHE_TAGS.projects);
+  const post = await db.post.findFirst({
+    where: { slug, isPublished: true },
+    select: POST_DETAIL_SELECT,
+  });
+  return post ? toPostDetail(post) : null;
+}
+
+export const POST_DETAIL_SELECT = { ...POST_CARD_SELECT, body: true, updatedAt: true } as const;
+
+type PostDetailRow = NonNullable<
+  Awaited<ReturnType<typeof db.post.findFirst<{ select: typeof POST_DETAIL_SELECT }>>>
+>;
+
+/** DB 의 글을 상세 화면에서 쓰는 형태로 바꾼다. 공개 페이지와 관리자 미리보기가 함께 쓴다. */
+export function toPostDetail(post: PostDetailRow) {
+  return { ...toPostCard(post), body: post.body, updatedAt: post.updatedAt.toISOString() };
+}
+
+export type PublicPost = ReturnType<typeof toPostDetail>;
+
+/** sitemap 용: 공개된 글의 주소와 마지막 수정 시각 */
+export async function getPublishedPostDates() {
+  "use cache";
+  cacheLife("max");
+  cacheTag(CACHE_TAGS.posts);
+  const posts = await db.post.findMany({
+    where: { isPublished: true },
+    orderBy: [...POST_ORDER],
+    select: { slug: true, updatedAt: true },
+  });
+  return posts.map(({ slug, updatedAt }) => ({ slug, updatedAt: updatedAt.toISOString() }));
 }
 
 /** 상태 페이지에 표시할 감시 대상 */

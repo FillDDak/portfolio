@@ -36,17 +36,20 @@ export function cleanUtmSource(value: string | null | undefined): string {
 
 export type TrackedPage =
   | { kind: "page"; path: string }
-  | { kind: "project"; path: string; slug: string };
+  | { kind: "project"; path: string; slug: string }
+  | { kind: "post"; path: string; slug: string };
 
 /** 집계할 공개 페이지인지 확인하고 경로를 정리한다. 관리자 화면이나 알 수 없는 경로는 null. */
 export function parseTrackedPath(path: unknown): TrackedPage | null {
   if (typeof path !== "string" || path.length > 200) return null;
   const clean = path.split(/[?#]/)[0] ?? "";
-  if (clean === "/" || clean === "/resume" || clean === "/status") {
+  if (clean === "/" || clean === "/resume" || clean === "/status" || clean === "/blog") {
     return { kind: "page", path: clean };
   }
   const project = clean.match(/^\/projects\/([a-z0-9]+(?:-[a-z0-9]+)*)$/);
   if (project?.[1]) return { kind: "project", path: clean, slug: project[1] };
+  const post = clean.match(/^\/blog\/([a-z0-9]+(?:-[a-z0-9]+)*)$/);
+  if (post?.[1]) return { kind: "post", path: clean, slug: post[1] };
   return null;
 }
 
@@ -56,7 +59,7 @@ export function parseTrackedPath(path: unknown): TrackedPage | null {
 export const TRACKED_SECTIONS = ["projects", "experience", "skills", "certificates", "contact"] as const;
 export type TrackedSection = (typeof TRACKED_SECTIONS)[number];
 
-export const PROFILE_LINK_KEYS = ["github", "velog", "notion"] as const;
+export const PROFILE_LINK_KEYS = ["github", "blog", "notion"] as const;
 export const PROJECT_LINK_KEYS = ["demo", "github", "docs"] as const;
 
 export type ContentEvent = {
@@ -73,7 +76,7 @@ const PROJECT_ID = /^[1-9]\d{0,8}$/;
  *   home                          홈 방문(탭 세션당 1번)
  *   section  projects|experience|skills|certificates|contact
  *   card     <프로젝트 id>         홈의 프로젝트 카드 클릭
- *   link     profile:<github|velog|notion> | project:<id>:<demo|github|docs>
+ *   link     profile:<github|blog|notion> | project:<id>:<demo|github|docs>
  *   contact  start                문의 폼 작성 시작
  * PDF 열람과 문의 전송은 서버에서 직접 기록하므로 여기서는 받지 않는다.
  */

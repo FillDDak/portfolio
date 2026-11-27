@@ -127,13 +127,15 @@ export const AlertCircleIcon = (props: IconProps) => (
   </Base>
 );
 
-/** GitHub 로고 (단색) */
-/* Velog·Notion 로고 경로는 Simple Icons(simple-icons 16.38.0)에서 가져왔다. 모양은 그대로 두고 색만 글자색을 따른다. */
-export const VelogIcon = (props: IconProps) => (
-  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false" {...props}>
-    <path d="M3 0C1.338 0 0 1.338 0 3v18c0 1.662 1.338 3 3 3h18c1.662 0 3-1.338 3-3V3c0-1.662-1.338-3-3-3H3Zm6.883 6.25c.63 0 1.005.3 1.125.9l1.463 8.303c.465-.615.846-1.133 1.146-1.553.465-.66.893-1.418 1.283-2.273.405-.855.608-1.62.608-2.295 0-.405-.113-.727-.338-.967-.21-.255-.608-.577-1.193-.967.6-.765 1.35-1.148 2.25-1.148.48 0 .878.143 1.193.428.33.285.494.704.494 1.26 0 .93-.39 2.093-1.17 3.488-.765 1.38-2.241 3.457-4.431 6.232l-2.227.156-1.711-9.628h-2.25V7.24c.6-.195 1.305-.406 2.115-.63.81-.24 1.358-.36 1.643-.36Z" />
-  </svg>
+/** 블로그(이 사이트의 글 목록): 펜으로 쓰는 모양 */
+export const BlogIcon = (props: IconProps) => (
+  <Base strokeWidth="2" {...props}>
+    <path d="M12 20h8.5" />
+    <path d="M16.4 3.6a2.05 2.05 0 0 1 2.9 2.9L7.5 18.3l-3.9 1 1-3.9z" />
+  </Base>
 );
+
+/* Notion 로고 경로는 Simple Icons(simple-icons 16.38.0)에서 가져왔다. 모양은 그대로 두고 색만 글자색을 따른다. */
 
 export const NotionIcon = (props: IconProps) => (
   <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false" {...props}>
@@ -141,6 +143,7 @@ export const NotionIcon = (props: IconProps) => (
   </svg>
 );
 
+/** GitHub 로고 (단색) */
 export const GitHubIcon = (props: IconProps) => (
   <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false" {...props}>
     <path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2z" />

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProjectArticle } from "@/components/public/project-article";
 import { requireAdmin } from "@/lib/auth/guard";
-import { PROJECT_DETAIL_INCLUDE, toProjectDetail } from "@/lib/data/public";
+import { getProjectPosts, PROJECT_DETAIL_INCLUDE, toProjectDetail } from "@/lib/data/public";
 import { db } from "@/lib/db";
 
 // 관리자 화면은 로딩 표시 없이, 데이터를 다 받은 뒤 완성된 화면으로 바로 바꾼다((protected)/layout.tsx 설명 참고).
@@ -27,6 +27,8 @@ export default async function ProjectPreviewPage({ params }: PageProps<"/admin/p
   const { id } = await params;
   const project = await loadProject(id);
   if (!project) notFound();
+  // 연결한 글은 방문자에게 보이는 것(공개한 글)만 같이 보여 준다.
+  const posts = await getProjectPosts(project.id);
 
   return (
     <>
@@ -64,7 +66,7 @@ export default async function ProjectPreviewPage({ params }: PageProps<"/admin/p
       {/* 공개 페이지와 같은 구조: 화면 폭을 채우는 main 안에서 가운데 정렬한다(바로 mx-auto 를 주면 내용 길이만큼 넓어진다). */}
       <main className="flex-1">
         <div className="mx-auto max-w-3xl px-5 pt-6 pb-16 md:px-8 md:pt-10 md:pb-24">
-          <ProjectArticle project={toProjectDetail(project)} />
+          <ProjectArticle project={toProjectDetail(project)} posts={posts} />
         </div>
       </main>
     </>

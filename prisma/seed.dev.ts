@@ -31,6 +31,7 @@ async function clear() {
   await db.skill.deleteMany();
   await db.certificate.deleteMany();
   await db.experience.deleteMany();
+  await db.post.deleteMany();
   await db.profile.update({ where: { id: 1 }, data: { coreStack: "", notionUrl: "" } });
 }
 
@@ -171,6 +172,63 @@ async function fill() {
         description: "매주 대규모 시스템 설계 사례를 읽고 발표",
       },
       { kind: "AWARD", title: "[예시] ○○ 해커톤 우수상", subtitle: "○○협회", startDate: "2025-08" },
+    ],
+  });
+
+  const studyBoard = await db.project.findUnique({ where: { slug: "example-study-board" }, select: { id: true } });
+  await db.post.createMany({
+    data: [
+      {
+        category: "TROUBLESHOOTING",
+        title: "[예시] 선착순 쿠폰 초과 발급 문제",
+        slug: "example-coupon-over-issue",
+        summary: "동시 요청에서 재고보다 많이 발급되던 문제를 Redis 원자 연산으로 해결했습니다.",
+        tags: "Redis, Spring Boot",
+        date: "2026-04-10",
+        isPublished: true,
+        projectId: coupon?.id ?? null,
+        body: "## 문제 상황\n\n이벤트 시작 직후 재고 100개에 137개가 발급되었습니다.\n\n## 원인\n\n재고 확인과 차감이 서로 다른 쿼리라 그 사이에 다른 요청이 끼어들었습니다.\n\n## 해결\n\n```lua\nlocal remain = redis.call('DECR', KEYS[1])\nif remain < 0 then return -1 end\nreturn remain\n```\n\n## 결과\n\n초과 발급 0건.\n",
+      },
+      {
+        category: "TROUBLESHOOTING",
+        title: "[예시] 쿠폰 발급 API 응답 지연",
+        slug: "example-coupon-latency",
+        summary: "비관적 락 대기로 800ms 넘게 걸리던 응답을 비동기 저장으로 95ms까지 줄였습니다.",
+        tags: "MySQL, k6",
+        date: "2026-05-02",
+        isPublished: true,
+        projectId: coupon?.id ?? null,
+        body: "## 문제 상황\n\n부하 테스트에서 평균 응답 시간이 820ms 였습니다.\n\n## 원인\n\n락을 기다리는 시간이 대부분이었습니다.\n\n## 해결\n\n발급 내역 저장을 큐로 넘겼습니다.\n\n## 결과\n\n| 항목 | 전 | 후 |\n| --- | --- | --- |\n| 평균 응답 | 820ms | 95ms |\n",
+      },
+      {
+        category: "TROUBLESHOOTING",
+        title: "[예시] 게시글 목록 N+1 문제",
+        slug: "example-board-n-plus-one",
+        summary: "fetch join 과 batch size 로 목록 조회 쿼리를 12회에서 2회로 줄였습니다.",
+        tags: "JPA",
+        date: "2025-12-15",
+        isPublished: true,
+        projectId: studyBoard?.id ?? null,
+        body: "## 문제 상황\n\n목록 한 번에 쿼리가 12번 실행되었습니다.\n\n## 해결\n\nfetch join 과 `default_batch_fetch_size` 를 썼습니다.\n",
+      },
+      {
+        category: "NOTE",
+        title: "[예시] Spring 트랜잭션 전파 정리",
+        slug: "example-transaction-propagation",
+        summary: "REQUIRED 와 REQUIRES_NEW 의 차이를 예제 코드로 정리했습니다.",
+        tags: "Spring Boot",
+        date: "2026-06-20",
+        isPublished: true,
+        body: "## REQUIRED\n\n바깥 트랜잭션에 참여합니다.\n\n## REQUIRES_NEW\n\n항상 새 트랜잭션을 엽니다.\n",
+      },
+      {
+        category: "NOTE",
+        title: "[예시] 작성 중인 글",
+        slug: "example-draft",
+        summary: "비공개 글은 공개 페이지에 보이지 않습니다.",
+        date: "2026-07-01",
+        isPublished: false,
+      },
     ],
   });
 

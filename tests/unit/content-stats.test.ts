@@ -82,7 +82,7 @@ describe("콘텐츠 반응 집계", () => {
     await record.recordContentEvent({ event: "contact", target: "start", now });
     await record.recordContentEvent({ event: "contact", target: "sent", now });
     await record.recordContentEvent({ event: "pdf", target: "download", now });
-    await record.recordContentEvent({ event: "link", target: "profile:velog", now });
+    await record.recordContentEvent({ event: "link", target: "profile:blog", now });
     await record.recordContentEvent({
       event: "link",
       target: `project:${publishedId}:github`,
@@ -106,7 +106,7 @@ describe("콘텐츠 반응 집계", () => {
     expect(result.pdf).toEqual({ view: 0, download: 1 });
     expect(result.profileLinks).toEqual([
       { key: "github", count: 0 },
-      { key: "velog", count: 1 },
+      { key: "blog", count: 1 },
       { key: "notion", count: 0 },
     ]);
     // 비공개 프로젝트는 목록에 나오지 않는다.

@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useRef } from "react";
-import { ArrowUpRightIcon, CloseIcon, MailIcon, MenuIcon } from "@/components/icons";
+import { ArrowRightIcon, ArrowUpRightIcon, CloseIcon, MailIcon, MenuIcon } from "@/components/icons";
 import { buttonClass } from "@/components/ui/button";
-import { profileLinkIcons, type ProfileLink } from "./profile-links";
+import { linkTargetProps, profileLinkIcons, type ProfileLink } from "./profile-links";
 import type { NavItem } from "./site-header";
 
 /** 모바일 내비게이션. 엄지로 닿기 쉽도록 화면 아래쪽 시트로 연다. */
@@ -60,24 +61,29 @@ export function MobileMenu({ items, links }: { items: NavItem[]; links: ProfileL
             </ul>
           </nav>
           {links.length > 0 ? (
-            <ul aria-label="외부 프로필" className="mt-3 flex flex-wrap gap-x-5">
+            <ul aria-label="프로필 링크" className="mt-3 flex flex-wrap gap-x-5">
               {links.map((link) => {
                 const Icon = profileLinkIcons[link.key];
                 return (
                   <li key={link.key}>
-                    <a
+                    <Link
                       href={link.url}
                       data-track={`link:profile:${link.key}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      {...linkTargetProps(link)}
                       onClick={close}
                       className="inline-flex min-h-11 items-center gap-2 font-semibold text-muted hover:text-foreground"
                     >
                       <Icon width={18} height={18} />
                       {link.label}
-                      <ArrowUpRightIcon width={14} height={14} />
-                      <span className="sr-only">(새 탭에서 열림)</span>
-                    </a>
+                      {link.external ? (
+                        <>
+                          <ArrowUpRightIcon width={14} height={14} />
+                          <span className="sr-only">(새 탭에서 열림)</span>
+                        </>
+                      ) : (
+                        <ArrowRightIcon width={14} height={14} />
+                      )}
+                    </Link>
                   </li>
                 );
               })}

@@ -5,6 +5,7 @@ import {
   experienceSchema,
   flattenErrors,
   monitorSchema,
+  postSchema,
   profileSchema,
   projectSchema,
   skillSchema,
@@ -105,6 +106,30 @@ describe("그 밖의 스키마", () => {
   it("monitorSchema: http(s) 주소만", () => {
     expect(monitorSchema.safeParse({ name: "przo", url: "https://przo.kr" }).success).toBe(true);
     expect(monitorSchema.safeParse({ name: "x", url: "file:///etc/passwd" }).success).toBe(false);
+  });
+});
+
+describe("postSchema", () => {
+  const base = {
+    category: "TROUBLESHOOTING",
+    title: "쿠폰 초과 발급",
+    slug: "coupon-over-issue",
+    summary: "Redis 원자 연산으로 해결",
+    date: "2026-04-10",
+  };
+
+  it("필수 값만으로 통과하고, 관련 프로젝트는 숫자 id 또는 없음", () => {
+    const parsed = postSchema.parse({ ...base, projectId: "" });
+    expect(parsed).toMatchObject({ body: "", tags: [], isPublished: false, projectId: null });
+    expect(postSchema.parse({ ...base, projectId: 3 }).projectId).toBe(3);
+    expect(postSchema.parse({ ...base, projectId: null }).projectId).toBeNull();
+  });
+
+  it("정해 둔 분류, 올바른 날짜와 주소만 받는다", () => {
+    expect(flattenErrors(postSchema.safeParse({ ...base, category: "ETC" }).error!)).toHaveProperty("category");
+    expect(flattenErrors(postSchema.safeParse({ ...base, date: "2026-02-30" }).error!)).toHaveProperty("date");
+    expect(flattenErrors(postSchema.safeParse({ ...base, slug: "쿠폰" }).error!)).toHaveProperty("slug");
+    expect(flattenErrors(postSchema.safeParse({ ...base, summary: " " }).error!)).toHaveProperty("summary");
   });
 });
 

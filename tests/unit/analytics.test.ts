@@ -234,10 +234,16 @@ describe("집계 대상 경로", () => {
       path: "/projects/coupon-system",
       slug: "coupon-system",
     });
+    expect(parseTrackedPath("/blog")).toEqual({ kind: "page", path: "/blog" });
+    expect(parseTrackedPath("/blog/coupon-over-issue?x=1")).toEqual({
+      kind: "post",
+      path: "/blog/coupon-over-issue",
+      slug: "coupon-over-issue",
+    });
   });
 
   it("관리자 화면과 알 수 없는 경로는 무시한다", () => {
-    for (const path of ["/admin", "/admin/projects", "/api/track", "/projects/", "/projects/A_B", "/x", "", 123, null]) {
+    for (const path of ["/admin", "/admin/projects", "/api/track", "/projects/", "/projects/A_B", "/blog/", "/blog/A_B", "/x", "", 123, null]) {
       expect(parseTrackedPath(path), String(path)).toBeNull();
     }
   });

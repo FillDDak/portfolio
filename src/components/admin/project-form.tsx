@@ -101,7 +101,9 @@ export function ProjectForm({
     if (slugTouched.current || values.slug) return;
     const { slugify } = await import("@/lib/validation/content");
     const draft = slugify(values.title);
-    if (draft) set("slug", draft);
+    // 불러오는 사이에 주소를 직접 입력했으면 덮어쓰지 않는다.
+    if (!draft || slugTouched.current) return;
+    setValues((current) => (current.slug ? current : { ...current, slug: draft }));
   }
 
   async function handleCoverChange(event: ChangeEvent<HTMLInputElement>) {

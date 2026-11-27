@@ -18,12 +18,15 @@ export const metadata: Metadata = { title: "조회 기록" };
 const isDate = (value: unknown): value is string =>
   typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
 
+/** titles: 프로젝트·글 상세 경로 → 제목 */
 function pageLabel(path: string, titles: Map<string, string>): string {
   if (path === "/") return "홈";
   if (path === "/resume") return "PDF 포트폴리오";
   if (path === "/status") return "상태 페이지";
-  const slug = path.replace("/projects/", "");
-  return titles.get(slug) ?? path;
+  if (path === "/blog") return "블로그";
+  const title = titles.get(path);
+  if (!title) return path;
+  return path.startsWith("/blog/") ? `블로그 · ${title}` : title;
 }
 
 export default async function ViewsPage({ searchParams }: PageProps<"/admin/views">) {
@@ -36,14 +39,18 @@ export default async function ViewsPage({ searchParams }: PageProps<"/admin/view
   const pageNumber = Number(typeof params.page === "string" ? params.page : "1");
   const page = Number.isInteger(pageNumber) && pageNumber > 0 ? pageNumber : 1;
 
-  const [log, projects] = await Promise.all([
+  const [log, projects, posts] = await Promise.all([
     getViewLog({ from, to, projectId, page }),
     db.project.findMany({
       orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
       select: { id: true, title: true, slug: true },
     }),
+    db.post.findMany({ select: { title: true, slug: true } }),
   ]);
-  const titles = new Map(projects.map((project) => [project.slug, project.title]));
+  const titles = new Map([
+    ...projects.map((project) => [`/projects/${project.slug}`, project.title] as const),
+    ...posts.map((post) => [`/blog/${post.slug}`, post.title] as const),
+  ]);
   const retentionDays = getEnv().PAGEVIEW_RETENTION_DAYS;
 
   const pageHref = (target: number) => {

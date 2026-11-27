@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { POST_CATEGORIES } from "@/lib/post-category";
 
 /** 관리자 화면에서 입력하는 콘텐츠의 검증 스키마. 폼(클라이언트)과 Server Action(서버)이 함께 쓴다. */
 
@@ -47,7 +48,6 @@ export const profileSchema = z.object({
   bio: optionalText("자기소개", 600),
   coreStack: optionalText("핵심 스택", 300),
   githubUrl: optionalUrl("GitHub"),
-  velogUrl: optionalUrl("Velog"),
   notionUrl: optionalUrl("Notion"),
   contactEmail: z
     .string()
@@ -60,18 +60,22 @@ export const profileSchema = z.object({
 
 export type ProfileInput = z.infer<typeof profileSchema>;
 
+/** 상세 페이지 주소에 쓰는 slug. 영문 소문자, 숫자, 하이픈만. */
+const slug = () =>
+  z
+    .string()
+    .trim()
+    .min(1, "주소(slug)를 입력해 주세요.")
+    .max(80, "주소(slug)는 80자 이하로 입력해 주세요.")
+    .regex(
+      /^[a-z0-9]+(-[a-z0-9]+)*$/,
+      "주소(slug)는 영문 소문자, 숫자, 하이픈(-)만 쓸 수 있습니다. 예: coupon-system",
+    );
+
 export const projectSchema = z
   .object({
     title: text("제목", 100),
-    slug: z
-      .string()
-      .trim()
-      .min(1, "주소(slug)를 입력해 주세요.")
-      .max(80, "주소(slug)는 80자 이하로 입력해 주세요.")
-      .regex(
-        /^[a-z0-9]+(-[a-z0-9]+)*$/,
-        "주소(slug)는 영문 소문자, 숫자, 하이픈(-)만 쓸 수 있습니다. 예: coupon-system",
-      ),
+    slug: slug(),
     summary: text("한 줄 요약", 200),
     role: optionalText("역할", 100),
     teamSize: z.coerce
@@ -118,10 +122,7 @@ export const certificateSchema = z.object({
   acquiredAt: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "취득일을 선택해 주세요.")
-    .refine((value) => {
-      const date = new Date(`${value}T00:00:00Z`);
-      return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
-    }, "취득일이 올바른 날짜가 아닙니다."),
+    .refine(isRealDate, "취득일이 올바른 날짜가 아닙니다."),
 });
 
 /** 경험 종류. 공개 페이지에서 이 순서로 묶어 보여 준다(채용 담당자가 먼저 확인하는 순). */
@@ -155,6 +156,35 @@ export const experienceSchema = z
   });
 
 export type ExperienceInput = z.infer<typeof experienceSchema>;
+
+/** 실제로 있는 날짜(YYYY-MM-DD)인지 */
+function isRealDate(value: string): boolean {
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+export const postSchema = z.object({
+  category: z.enum(POST_CATEGORIES, { error: "분류를 선택해 주세요." }),
+  title: text("제목", 120),
+  slug: slug(),
+  summary: text("요약", 300),
+  body: optionalText("본문", 100_000),
+  tags: z
+    .array(z.string().trim().min(1).max(30, "태그는 30자 이하로 입력해 주세요."))
+    .max(10, "태그는 10개까지 넣을 수 있습니다.")
+    .default([]),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "날짜를 선택해 주세요.")
+    .refine(isRealDate, "날짜가 올바르지 않습니다."),
+  isPublished: z.boolean().default(false),
+  projectId: z
+    .union([z.literal(""), z.null(), z.coerce.number().int().positive()])
+    .optional()
+    .transform((value) => (typeof value === "number" ? value : null)),
+});
+
+export type PostInput = z.infer<typeof postSchema>;
 
 export const monitorSchema = z.object({
   name: text("이름", 40),

@@ -17,7 +17,7 @@ model Profile {
   /// 첫 화면에 보여줄 핵심 스택. 쉼표로 구분한 문자열
   coreStack       String    @default("")
   githubUrl       String    @default("")
-  velogUrl        String    @default("")
+  /// DB 에는 쓰지 않는 velogUrl 칸이 남아 있다. 배포 중 되돌릴 때 이전 버전이 깨지지 않게 다음 배포에서 지운다.
   notionUrl       String    @default("")
   /// 문의 섹션에 공개하는 메일 주소. 비우면 표시하지 않는다(문의 폼의 수신 주소는 환경 변수 CONTACT_TO 로 따로 둔다)
   contactEmail    String    @default("")
@@ -63,6 +63,7 @@ model Project {
   tags        ProjectTag[]
   images      ProjectImage[]
   experiences Experience[]
+  posts       Post[]
 
   @@index([isPublished, isFeatured, sortOrder])
 }
@@ -135,6 +136,32 @@ model Experience {
   project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@index([kind])
+}
+
+/// 글(트러블슈팅, 개발 노트). 프로젝트에 연결하면 그 프로젝트 상세 페이지에도 목록으로 보인다.
+model Post {
+  id          Int      @id @default(autoincrement())
+  /// TROUBLESHOOTING(트러블슈팅) | NOTE(개발 노트)
+  category    String
+  title       String
+  slug        String   @unique
+  /// 목록 카드에 보여 줄 한두 줄 요약
+  summary     String
+  /// Markdown 본문
+  body        String   @default("")
+  /// 쉼표로 구분한 기술 태그
+  tags        String   @default("")
+  /// 글에 표시하는 날짜(YYYY-MM-DD). 목록은 이 날짜의 최신순
+  date        String
+  isPublished Boolean  @default(false)
+  /// 관련 프로젝트. 프로젝트를 지우면 연결만 끊긴다.
+  projectId   Int?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished, date])
+  @@index([projectId])
 }
 
 /// 상태 페이지에서 감시할 URL. 공개 페이지에는 주소를 글자로 보여 주지 않고 '방문' 버튼의 링크로만 쓴다.

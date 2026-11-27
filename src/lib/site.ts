@@ -16,12 +16,11 @@ type PersonInput = {
   jobTitle: string;
   tagline: string;
   githubUrl: string;
-  velogUrl: string;
 };
 
 /** 검색 엔진용 구조화 데이터(schema.org Person) */
 export function buildPersonJsonLd(profile: PersonInput, siteUrl: string) {
-  const sameAs = [profile.githubUrl, profile.velogUrl].filter(Boolean);
+  const sameAs = [profile.githubUrl].filter(Boolean);
   return {
     "@context": "https://schema.org",
     "@type": "Person",

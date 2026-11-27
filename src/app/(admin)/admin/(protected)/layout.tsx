@@ -17,10 +17,11 @@ export const instant = false;
 const navItems: AdminNavItem[] = [
   { href: "/admin", label: "대시보드" },
   { href: "/admin/views", label: "조회 기록", dividerAfter: true },
-  // 이하 홈 화면에 보이는 순서: 첫 화면(소개·PDF) → 프로젝트 → 경험 → 스킬 → 자격증 → 문의 → 푸터(서비스 상태)
+  // 이하 홈 화면에 보이는 순서: 첫 화면(소개·PDF) → 프로젝트(와 글) → 경험 → 스킬 → 자격증 → 문의 → 푸터(서비스 상태)
   { href: "/admin/profile", label: "자기소개·링크" },
   { href: "/admin/resume", label: "PDF" },
   { href: "/admin/projects", label: "프로젝트" },
+  { href: "/admin/blog", label: "블로그" },
   { href: "/admin/experiences", label: "경험" },
   { href: "/admin/skills", label: "스킬" },
   { href: "/admin/certificates", label: "자격증" },

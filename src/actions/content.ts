@@ -12,6 +12,7 @@ import {
   experienceSchema,
   flattenErrors,
   monitorSchema,
+  postSchema,
   profileSchema,
   projectSchema,
   skillCategorySchema,
@@ -327,6 +328,73 @@ export async function deleteExperience(formData: FormData): Promise<ActionResult
     return ok("삭제했습니다.");
   } catch (error) {
     return unexpected(error, "삭제");
+  }
+}
+
+/* ── 글 ──────────────────────────────────────────────────── */
+
+export async function savePost(id: number | null, input: unknown): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = postSchema.safeParse(input);
+  if (!parsed.success) return invalid(flattenErrors(parsed.error));
+  const { tags, ...fields } = parsed.data;
+  const data = { ...fields, tags: tags.join(", ") };
+
+  try {
+    const sameSlug = await db.post.findUnique({ where: { slug: data.slug }, select: { id: true } });
+    if (sameSlug && sameSlug.id !== id) {
+      return invalid({ slug: "이미 다른 글이 쓰고 있는 주소(slug)입니다." });
+    }
+    if (
+      data.projectId !== null &&
+      !(await db.project.findUnique({ where: { id: data.projectId }, select: { id: true } }))
+    ) {
+      return invalid({ projectId: "연결할 프로젝트를 찾을 수 없습니다." });
+    }
+
+    if (id === null) {
+      const created = await db.post.create({ data });
+      updateTag(CACHE_TAGS.posts);
+      return ok("글을 추가했습니다.", created.id);
+    }
+    if (!(await db.post.findUnique({ where: { id }, select: { id: true } }))) {
+      return fail("글을 찾을 수 없습니다. 이미 삭제되었을 수 있습니다.");
+    }
+    await db.post.update({ where: { id }, data });
+    updateTag(CACHE_TAGS.posts);
+    return ok("저장했습니다.", id);
+  } catch (error) {
+    return unexpected(error, "저장");
+  }
+}
+
+/**
+ * 글 삭제. 본문에 넣은 이미지 파일은 지우지 않는다.
+ * 같은 이미지 주소를 다른 글이나 프로젝트 본문에 붙여 썼을 수 있어서다.
+ */
+export async function deletePost(formData: FormData): Promise<ActionResult> {
+  await requireAdmin();
+  try {
+    await db.post.delete({ where: { id: formId(formData) } });
+    updateTag(CACHE_TAGS.posts);
+    return ok("삭제했습니다.");
+  } catch (error) {
+    return unexpected(error, "삭제");
+  }
+}
+
+/** 목록 화면에서 공개 여부를 바로 바꾼다. */
+export async function togglePostPublished(formData: FormData): Promise<ActionResult> {
+  await requireAdmin();
+  const id = formId(formData);
+  try {
+    const post = await db.post.findUnique({ where: { id }, select: { isPublished: true } });
+    if (!post) return fail("글을 찾을 수 없습니다.");
+    await db.post.update({ where: { id }, data: { isPublished: !post.isPublished } });
+    updateTag(CACHE_TAGS.posts);
+    return ok();
+  } catch (error) {
+    return unexpected(error, "변경");
   }
 }
 

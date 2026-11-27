@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ProjectArticle } from "@/components/public/project-article";
-import { getPublishedProject } from "@/lib/data/public";
+import { getProjectPosts, getPublishedProject } from "@/lib/data/public";
 import { SITE_MARK } from "@/lib/site";
 
 type Props = PageProps<"/projects/[slug]">;
@@ -57,7 +57,8 @@ async function ProjectContent({ params }: Pick<Props, "params">) {
   const { slug } = await params;
   const project = await getPublishedProject(slug);
   if (!project) notFound();
-  return <ProjectArticle project={project} />;
+  const posts = await getProjectPosts(project.id);
+  return <ProjectArticle project={project} posts={posts} />;
 }
 
 function ProjectSkeleton() {

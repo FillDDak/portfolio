@@ -42,6 +42,11 @@ export async function recordPageView(input: {
     if (!project) return "ignored";
     projectId = project.id;
   }
+  // 비공개이거나 없는 글 주소는 세지 않는다.
+  if (page.kind === "post") {
+    const post = await db.post.findFirst({ where: { slug: page.slug, isPublished: true }, select: { id: true } });
+    if (!post) return "ignored";
+  }
 
   const date = kstDate(now);
   const hash = visitorHash({

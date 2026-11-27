@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { buildPersonJsonLd, getSiteUrl, serializeJsonLd } from "@/lib/site";
 import { ContactForm } from "@/components/public/contact-form";
 import { Hero } from "@/components/public/hero";
+import { getProfileLinks } from "@/components/public/profile-links";
 import {
   CertificatesSection,
   ExperienceSection,
@@ -13,6 +14,7 @@ import {
   getCertificates,
   getExperienceGroups,
   getProfile,
+  getPublishedPosts,
   getPublishedProjects,
   getSkillGroups,
 } from "@/lib/data/public";
@@ -20,8 +22,9 @@ import {
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default async function HomePage() {
-  const [profile, projects, experienceGroups, skillGroups, certificates] = await Promise.all([
+  const [profile, posts, projects, experienceGroups, skillGroups, certificates] = await Promise.all([
     getProfile(),
+    getPublishedPosts(),
     getPublishedProjects(),
     getExperienceGroups(),
     getSkillGroups(),
@@ -39,7 +42,7 @@ export default async function HomePage() {
           __html: serializeJsonLd(buildPersonJsonLd(profile, getSiteUrl())),
         }}
       />
-      <Hero profile={profile} />
+      <Hero profile={profile} links={getProfileLinks(profile, posts.length > 0)} />
       {projects.length > 0 ? <ProjectsSection index={++index} projects={projects} /> : null}
       {experienceGroups.length > 0 ? <ExperienceSection index={++index} groups={experienceGroups} /> : null}
       {skillGroups.length > 0 ? <SkillsSection index={++index} groups={skillGroups} /> : null}
